@@ -11,13 +11,10 @@
 	</head>
 	<body>
 		<script id="vertexShader" type="x-shader/x-vertex">
-			attribute float alpha;
 			attribute vec3 color;
-			varying float vAlpha;
 			varying vec4 vColor;
 			uniform float time;
 			uniform float size;
-			uniform float depth;
 			void main()	{
 				vec3 newPosition = position;
 				newPosition.x += sin(newPosition.x + time) * .1;
@@ -27,33 +24,42 @@
 				vec4 position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 				gl_Position = position;
 
-				vAlpha = (size - (distance(vec3(0.,0.,0.), position.xyz) / depth)) * 3.;
-				vColor = vec4(color,vAlpha);
-				gl_PointSize = (size - (distance(vec3(0.,0.,0.), position.xyz) / depth)) * 3.;
+				vColor = vec4(color,1.);
+				gl_PointSize = size;
 			}
 		</script>
 	
 		<script id="fragmentShader" type="x-shader/x-fragment">
-			varying float vAlpha;
 			varying vec4 vColor;
 			uniform sampler2D texture;
+			uniform vec3 fogColor;
+			uniform float fogNear;
+			uniform float fogFar;
 			void main()	{
 				gl_FragColor = vColor * texture2D(texture, gl_PointCoord);
+				#ifdef USE_LOGDEPTHBUF_EXT
+					float depth = gl_FragDepthEXT / gl_FragCoord.w;
+				#else
+					float depth = gl_FragCoord.z / gl_FragCoord.w;
+				#endif
+				float fogFactor = smoothstep( fogNear, fogFar, depth );
+		  
+				gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
 			}
 		</script>
         <script src="https://threejs.org/build/three.js"></script>
         <script src="https://threejs.org/examples/js/loaders/LoaderSupport.js"></script>
 		<script src="https://threejs.org/examples/js/loaders/OBJLoader2.js"></script>
-		<!-- <script src="https://threejs.org/examples/js/loaders/PLYLoader.js"></script> -->
 		<!-- <script src="http://dev.miaumiau.cat/curl_particles_collision/js/CameraControl.js"></script> -->
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.2/TweenMax.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5/dat.gui.min.js"></script>
 		<script src="https://rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.0.3/chroma.min.js"></script>
 		<script>
-			var maxPoints = 200000;
+			var maxPoints = 14904;
 
             var scene = new THREE.Scene();
+				scene.fog = new THREE.Fog( 0x000000, 0.1, 30 );
 			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 			camera.position.z = 22;
 			// var controls = new THREE.OrbitControls( camera );
@@ -64,15 +70,33 @@
 			renderer.setClearColor( 0x000000, 1 );
 			document.body.appendChild( renderer.domElement );
 
+			// light
+            var ambientLight = new THREE.AmbientLight( 0x222222 );
+            scene.add( ambientLight );
+            var lights = [];
+			lights[ 0 ] = new THREE.PointLight( 0xff0000, 1, 0 );
+			lights[ 1 ] = new THREE.PointLight( 0x00ff00, 1, 0 );
+			lights[ 2 ] = new THREE.PointLight( 0x0000ff, 1, 0 );
+
+			lights[ 0 ].position.set( -22, 0, 22 );
+			lights[ 1 ].position.set( 22, 0, 22 );
+			lights[ 2 ].position.set( 0, 0 , 22 );
+
+			scene.add( lights[ 0 ] );
+			scene.add( lights[ 1 ] );
+			scene.add( lights[ 2 ] );
+
 			var options = {
 				wave: false,
 				point:{
-					size:35,
+					size:30,
 					depth:.8
 				},
 				camera:{
 					z:camera.position.z
 				},
+				fogNear:scene.fog.near,
+				fogFar:scene.fog.far,
 				deerToRabbit: function(){
 					morphTo(rabbitPoint);
 				},
@@ -82,8 +106,12 @@
 			}
 			var gui = new dat.GUI({width: 300});
 			gui.add(options.point, 'size').min(1).max(100).name('Size of point');
-			gui.add(options.point, 'depth').min(.1).max(5).name('Depth of point');
-			gui.add(options.camera, 'z').min(0).max(50).name('Camera position Z');
+			// gui.add(options.point, 'depth').min(.1).max(5).name('Depth of point');
+			gui.add(options.camera, 'z').min(0).max(50).name('Move Camera');
+			var _f = gui.addFolder('Fog');
+			_f.add(options, 'fogNear').min(.1).max(20).name('Near');
+			_f.add(options, 'fogFar').min(20).max(60).name('Far');
+			_f.open();
 			gui.add(options, 'deerToRabbit').name('morph to 🐇');
 			gui.add(options, 'RabbitToDeer').name('morph to 🍐');
 			gui.add(options, 'wave').name('wave');
@@ -112,11 +140,14 @@
 			var uniforms = {
 				time: { value: 0 },
 				size: { value: options.point.size },
-				depth: { value: options.point.depth },
+				// depth: { value: options.point.depth },
 				texture:{
 					type: "t",
 					value: new THREE.TextureLoader().load('https://klevron.github.io/codepen/misc/star.png')
-				}
+				},
+				fogColor:    { type: "c", value: scene.fog.color },
+				fogNear:     { type: "f", value: scene.fog.near },
+				fogFar:      { type: "f", value: scene.fog.far }
 			};
 			
 
@@ -127,7 +158,8 @@
 				blending: THREE.AdditiveBlending,
 				depthTest: true,
     			depthWrite: false,
-				transparent: true
+				transparent: true,
+				fog:true
 			});
 
 			// var changeColor = function(value){
@@ -179,6 +211,7 @@
 							var geo = new THREE.Geometry().fromBufferGeometry( child.geometry );
 
 							deerPoint = new THREE.Points( geo, pointsMaterial );
+							console.log('pear: ',deerPoint.geometry.vertices.length);
 						}
 					});
                 }, null, null, null, false );
@@ -197,6 +230,7 @@
 							var geo = new THREE.Geometry().fromBufferGeometry( child.geometry );
 
 							rabbitPoint = new THREE.Points( geo , pointsMaterial );
+							console.log('rabbit: ',rabbitPoint.geometry.vertices.length);
 						}
 					});
 				}, null, null, null, false );
@@ -283,7 +317,8 @@
 						TweenMax.set(finallyPoint.material.uniforms.time,{value:0});
 
 					finallyPoint.material.uniforms.size.value = options.point.size;
-					finallyPoint.material.uniforms.depth.value = options.point.depth;
+					scene.fog.near = options.fogNear;
+					scene.fog.far = options.fogFar;
 				}
 
 
@@ -301,7 +336,12 @@
             };
             animate();
 
-
+			var geometry = new THREE.BoxGeometry( 3, 3, 3 );
+			var material = new THREE.MeshLambertMaterial( {color: 0x00ff00} );
+			var cube = new THREE.Mesh( geometry, material );
+			cube.rotation.y = 10;
+			cube.rotation.x = 10;
+			scene.add( cube );
 
 			//
 			// Random
