@@ -6,7 +6,8 @@
 		<style>
 			html,body{ overflow: hidden; cursor: grab; }
 			html:active, body:active { cursor: grabbing; }
-			body { padding:0; margin: 0; }
+			body { padding:0; margin: 0; background: rgb(70,15,44);
+background: linear-gradient(115deg, rgba(70,15,44,1) 0%, rgba(112,23,71,1) 50%, rgba(164,45,72,1) 100%); }
 			canvas { width: 100%; height: 100%; }
 		</style>
 	</head>
@@ -28,8 +29,8 @@
 				gl_Position = position;
 				gl_PointSize = max((dist / 10.) , 3.);
 
-				float white = max(dist * .002, .5);
-				vColor = vec3(white,white,white);
+				float white = max(dist * .001, 0.);
+				vColor = vec3(98./255.,20./255.,60./255.) * white;
 			}
 		</script>
 		<script id="fragmentShader" type="x-shader/x-fragment">
@@ -87,10 +88,10 @@
 			// var controls = new THREE.OrbitControls( camera );
 
 
-            var renderer = new THREE.WebGLRenderer( { antialias: true } );
+            var renderer = new THREE.WebGLRenderer( { antialias: true, alpha:true } );
 			renderer.setPixelRatio( window.devicePixelRatio );
 			renderer.setSize( window.innerWidth, window.innerHeight );
-			renderer.setClearColor( 0x000000, 1 );
+			renderer.setClearColor( 0x000000, 0 );
 			document.body.appendChild( renderer.domElement );
 
 
@@ -164,6 +165,7 @@
 			var _mesh = new THREE.Mesh( geometry, m );
 			_mesh.position.x = 5;
 			_mesh.position.y = 5;
+			_mesh.position.z = 0;
 			scene.add(_mesh);
 
 
@@ -200,7 +202,8 @@
 					color:0xffffff,
 					size:latlog[i][3],
 					map:new THREE.CanvasTexture(createTexture(latlog[i][2],latlog[i][3])),
-					depthWrite: false,
+					depthTest: false,
+					// depthWrite: false,
 					// blending: THREE.AdditiveBlending,
     				transparent: true,
 				});
