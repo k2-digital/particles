@@ -29,8 +29,8 @@ background: linear-gradient(115deg, rgba(70,15,44,1) 0%, rgba(112,23,71,1) 50%, 
 				gl_Position = position;
 				gl_PointSize = max((dist / 10.) , 3.);
 
-				float white = max(dist * .001, 0.);
-				vColor = vec3(98./255.,20./255.,60./255.) * white;
+				float white = max(dist * .001, 0.8);
+				vColor = vec3(98./256.,20./256.,60./256.) * white;
 			}
 		</script>
 		<script id="fragmentShader" type="x-shader/x-fragment">
