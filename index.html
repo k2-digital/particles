@@ -203,7 +203,7 @@
 					scene.add(finallyPoint);
 				};
 				var loader = new THREE.OBJLoader2(manager);
-                loader.load( './pear.obj', function ( obj ) {
+                loader.load( './model2.obj', function ( obj ) {
 					var geometry = obj.detail.loaderRootNode;
 					geometry.traverse( function( child ) {
 						if ( child instanceof THREE.Mesh ) {
@@ -218,7 +218,7 @@
 
 
 				loader = new THREE.OBJLoader2(manager);
-				loader.load( './bunny.obj', function ( obj ) {
+				loader.load( './model1.obj', function ( obj ) {
 					var geometry = obj.detail.loaderRootNode;
 					geometry.traverse( function( child ) {
 						if ( child instanceof THREE.Mesh ) {
