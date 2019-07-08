@@ -59,6 +59,7 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.0.3/chroma.min.js"></script>
 		<script>
 			var maxPoints = 3000;
+			var started = false;
 
             var scene = new THREE.Scene();
 				scene.fog = new THREE.Fog( 0x000000, 20, 30 );
@@ -223,6 +224,9 @@
 							var geo = new THREE.Geometry().fromBufferGeometry( child.geometry );
 							geo.mergeVertices();
 							deerPoint = new THREE.Points( geo, pointsMaterial );
+							for(var i=0; deerPoint.geometry.vertices[i]; i++){
+								deerPoint.geometry.vertices[i].y -= 1;
+							}
 							console.log('pear: ',deerPoint.geometry.vertices.length);
 						}
 					});
@@ -249,23 +253,27 @@
 					}
 					else{
 						target[i] = {
-							x:THREE.Math.randFloat(-100,100),
-							y:THREE.Math.randFloat(-100,100),
-							z:THREE.Math.randFloat(-100,100)
+							x:THREE.Math.randFloat(-10,10),
+							y:THREE.Math.randFloat(-10,10),
+							z:THREE.Math.randFloat(-10,10)
 						};
+						if(!started){
+							pos[i*3+0] = target[i].x;
+							pos[i*3+1] = target[i].y;
+							pos[i*3+2] = target[i].z;
+						}
 					}
 				}
 			}
 
 
 
-			var started = false;
 			var start = Date.now();
 			// var done = false;
             var animate = function () {
 				requestAnimationFrame( animate );
 
-				var timer = (Date.now() - start) * .00005;
+				var timer = (Date.now() - start) / 10000;
 
 				if(targetMesh){
 					var pos = pointsGeometry.attributes.position.array;
@@ -276,18 +284,18 @@
 							pos[i*3+2] += (target[i].z - pos[i*3+2]) * .1;
 						}
 						else{
-							pos[i*3+0] += (target[i].x - pos[i*3+0]) * ((started)?.1:1);
-							pos[i*3+1] += (target[i].y - pos[i*3+1]) * ((started)?.1:1);
-							pos[i*3+2] += (target[i].z - pos[i*3+2]) * ((started)?.1:1);
+							pos[i*3+0] += (target[i].x - pos[i*3+0]) * .01;
+							pos[i*3+1] += (target[i].y - pos[i*3+1]) * .01;
+							pos[i*3+2] += (target[i].z - pos[i*3+2]) * .01;
 						}
 					}
 					if(!started) started = true;
 				}
 				// 
 				if(finallyPoint){
-					finallyPoint.rotation.y-=.005;
+					finallyPoint.rotation.y = -timer;
 					if(options.wave){
-						TweenMax.killAll();
+						// TweenMax.killAll();
 						finallyPoint.material.uniforms.time.value+=.05;
 					}
 					else
