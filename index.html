@@ -282,6 +282,10 @@
 							pos[i*3+0] += (target[i].x - pos[i*3+0]) * .01;
 							pos[i*3+1] += (target[i].y - pos[i*3+1]) * .01;
 							pos[i*3+2] += (target[i].z - pos[i*3+2]) * .01;
+
+							pos[i*3+0] += Math.sin(target[i].x + timer) * .05;
+							pos[i*3+1] += -Math.cos(target[i].y + timer) * .05;
+							pos[i*3+2] += -Math.cos(target[i].z + timer) * .05;
 						}
 					}
 					if(!started) started = true;
