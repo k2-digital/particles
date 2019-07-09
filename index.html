@@ -17,9 +17,11 @@
 			uniform float size;
 			void main()	{
 				vec3 newPosition = position;
-				newPosition.x += sin(newPosition.x + time) * .1;
-				newPosition.y += -cos(newPosition.y + time) * .1;
-				newPosition.z += -cos(newPosition.z + time) * .1;
+				if(time > 0.){
+					newPosition.x += sin(newPosition.x + time) * .1;
+					newPosition.y += -cos(newPosition.y + time) * .1;
+					newPosition.z += -cos(newPosition.z + time) * .1;
+				}
 
 				vec4 position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 				gl_Position = position;
@@ -74,25 +76,32 @@
 			document.body.appendChild( renderer.domElement );
 
 			// light
-            var ambientLight = new THREE.AmbientLight( 0x222222 );
-            scene.add( ambientLight );
-            var lights = [];
-			lights[ 0 ] = new THREE.PointLight( 0xff0000, 1, 0 );
-			lights[ 1 ] = new THREE.PointLight( 0x00ff00, 1, 0 );
-			lights[ 2 ] = new THREE.PointLight( 0x0000ff, 1, 0 );
+            // var ambientLight = new THREE.AmbientLight( 0x222222 );
+            // scene.add( ambientLight );
+            // var lights = [];
+			// lights[ 0 ] = new THREE.PointLight( 0xff0000, 1, 0 );
+			// lights[ 1 ] = new THREE.PointLight( 0x00ff00, 1, 0 );
+			// lights[ 2 ] = new THREE.PointLight( 0x0000ff, 1, 0 );
 
-			lights[ 0 ].position.set( -22, 0, 22 );
-			lights[ 1 ].position.set( 22, 0, 22 );
-			lights[ 2 ].position.set( 0, 0 , 22 );
+			// lights[ 0 ].position.set( -22, 0, 22 );
+			// lights[ 1 ].position.set( 22, 0, 22 );
+			// lights[ 2 ].position.set( 0, 0 , 22 );
 
-			scene.add( lights[ 0 ] );
-			scene.add( lights[ 1 ] );
-			scene.add( lights[ 2 ] );
+			// scene.add( lights[ 0 ] );
+			// scene.add( lights[ 1 ] );
+			// scene.add( lights[ 2 ] );
+			window.addEventListener( 'resize', onWindowResize, false );
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+
 
 			var options = {
 				wave: false,
 				point:{
-					size:10,
+					size:20,
 					depth:.8
 				},
 				camera:{
@@ -293,12 +302,12 @@
 				// 
 				if(finallyPoint){
 					finallyPoint.rotation.y = -timer;
+					
 					if(options.wave){
-						// TweenMax.killAll();
 						finallyPoint.material.uniforms.time.value+=.05;
 					}
 					else
-						TweenMax.set(finallyPoint.material.uniforms.time,{value:0});
+						finallyPoint.material.uniforms.time.value = 0;
 
 					finallyPoint.material.uniforms.size.value = options.point.size;
 					scene.fog.near = options.fogNear;
@@ -309,7 +318,7 @@
 				camera.position.z = options.camera.z;
 
 				if(pointsGeometry.attributes.position) pointsGeometry.attributes.position.needsUpdate = true;
-				if(pointsGeometry.attributes.alpha) pointsGeometry.attributes.alpha.needsUpdate = true;
+				// if(pointsGeometry.attributes.alpha) pointsGeometry.attributes.alpha.needsUpdate = true;
 				if(pointsGeometry.attributes.color) pointsGeometry.attributes.color.needsUpdate = true;
 
 				camera.lookAt(new THREE.Vector3(0,0,0));
