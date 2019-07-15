@@ -170,19 +170,19 @@
 					morphTo(modelPoint[0]);
 					removeClass(document.querySelector('.color.active'),'active');
 					addClass(document.querySelector('#color1'), 'active');
-					// scene.fog.color = new THREE.Color(0x3f0c27);
+					scene.fog.color = new THREE.Color(0x3f0c27);
 				},
 				ToModel2: function(){
 					morphTo(modelPoint[1]);
 					removeClass(document.querySelector('.color.active'),'active');
 					addClass(document.querySelector('#color2'), 'active');
-					// scene.fog.color = new THREE.Color(0x024842);
+					scene.fog.color = new THREE.Color(0x024842);
 				},
 				ToModel3: function(){
 					morphTo(modelPoint[2]);
 					removeClass(document.querySelector('.color.active'),'active');
 					addClass(document.querySelector('#color3'), 'active');
-					// scene.fog.color = new THREE.Color(0x3e4ea0);
+					scene.fog.color = new THREE.Color(0x3e4ea0);
 				}
 			}
 			var gui = new dat.GUI({width: 300});
