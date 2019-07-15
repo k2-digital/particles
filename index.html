@@ -294,7 +294,7 @@
 								for(var i=0; modelPoint[idx].geometry.vertices[i]; i++){
 									modelPoint[idx].geometry.vertices[i].y += reposition;
 								}
-								console.log('model1: ',modelPoint[idx].geometry.vertices.length, modelPoint[idx]);
+								console.log('model'+(idx+1)+': ',modelPoint[idx].geometry.vertices.length, modelPoint[idx]);
 							}
 						});
 					}, null, null, null, false );
