@@ -5,11 +5,41 @@
 		<title>particles</title>
 		<style>
 			html,body{ overflow: hidden; }
-			body { padding:0; margin: 0; background:#000; transition: all .3s ease-out; }
-			canvas { width: 100%; height: 100%; }
+			body { padding:0; margin: 0; position: relative; background:#000; }
+			.color{
+				width:100%;
+				height:100%;
+				position: absolute;
+				top:0;
+				left:0;
+				opacity: 0;
+				visibility: hidden;
+				transition: all .6s ease-out;
+				z-index: 1;
+			}
+			.color.active{
+				opacity: 1;
+				visibility: visible;
+				transition-delay: 0ms;
+				z-index: 2;
+			}
+			#color1{
+				background:linear-gradient(333deg, rgba(165,45,72,1) 0%, rgba(125,26,78,1) 40%, rgba(63,12,39,1) 100%); 
+			}
+			#color2{
+				background:linear-gradient(225deg, rgba(2,72,66,1) 0%, rgba(0,81,76,1) 30%, rgba(0,108,110,1) 100%); 
+			}
+			#color3{
+				background:linear-gradient(331deg, rgba(8,1,99,1) 0%, rgba(15,12,64,1) 70%, rgba(3,4,38,1) 100%);; 
+			}
+			canvas { width: 100%; height: 100%; position:relative; z-index: 3; }
+			.dg.ac{ z-index:999 !important; }
 		</style>
 	</head>
 	<body>
+		<div id="color1" class="color active"></div>
+		<div id="color2" class="color"></div>
+		<div id="color3" class="color"></div>
 		<script id="vertexShader" type="x-shader/x-vertex">
 			attribute vec3 color;
 			varying vec4 vColor;
@@ -60,6 +90,47 @@
 		<script src="https://rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.0.3/chroma.min.js"></script>
 		<script>
+			//
+			// Add, Remove and Has Class
+			//
+			var hasClass = function(el, className){
+				if(el.classList)
+					return el.classList.contains(className)
+				else
+					return !!el.className.match(new RegExp('(\\s|^)' + className + '(\\s|$)'))
+			}
+
+			var  addClass = function(el, className){
+				if(el.classList)
+					el.classList.add(className)
+				else if(!hasClass(el, className)) el.className += " " + className
+			}
+
+			var removeClass = function(el, className){
+				var isNodelist = (typeof el.length != 'undefined' && typeof el.item != 'undefined')
+				if(isNodelist){
+					var els = el;
+
+					for(var i=0; els[i]; i++){
+						if(els[i].classList)
+							els[i].classList.remove(className)
+						else if(hasClass(els[i], className)){
+							var reg = new RegExp('(\\s|^)' + className + '(\\s|$)')
+							els[i].className=els[i].className.replace(reg, ' ')
+						}
+					}
+				}
+				else{
+					if(el.classList)
+						el.classList.remove(className)
+					else if(hasClass(el, className)){
+						var reg = new RegExp('(\\s|^)' + className + '(\\s|$)')
+						el.className=el.className.replace(reg, ' ')
+					}
+				}
+			}
+
+
 			var maxPoints = 32000;
 			var started = false;
 
@@ -97,18 +168,21 @@
 				fogFar:scene.fog.far,
 				ToModel1: function(){
 					morphTo(modelPoint[0]);
-					document.body.style.background = '#000';
-					scene.fog.color = new THREE.Color(0x000000);
+					removeClass(document.querySelector('.color.active'),'active');
+					addClass(document.querySelector('#color1'), 'active');
+					// scene.fog.color = new THREE.Color(0x3f0c27);
 				},
 				ToModel2: function(){
 					morphTo(modelPoint[1]);
-					document.body.style.background = '#3a903e';
-					scene.fog.color = new THREE.Color(0x3a903e);
+					removeClass(document.querySelector('.color.active'),'active');
+					addClass(document.querySelector('#color2'), 'active');
+					// scene.fog.color = new THREE.Color(0x024842);
 				},
 				ToModel3: function(){
 					morphTo(modelPoint[2]);
-					document.body.style.background = '#3e4ea0';
-					scene.fog.color = new THREE.Color(0x3e4ea0);
+					removeClass(document.querySelector('.color.active'),'active');
+					addClass(document.querySelector('#color3'), 'active');
+					// scene.fog.color = new THREE.Color(0x3e4ea0);
 				}
 			}
 			var gui = new dat.GUI({width: 300});
