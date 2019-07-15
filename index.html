@@ -60,7 +60,7 @@
 		<script src="https://rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.0.3/chroma.min.js"></script>
 		<script>
-			var maxPoints = 3000;
+			var maxPoints = 32000;
 			var started = false;
 
             var scene = new THREE.Scene();
@@ -75,21 +75,7 @@
 			renderer.setClearColor( 0x000000, 1 );
 			document.body.appendChild( renderer.domElement );
 
-			// light
-            // var ambientLight = new THREE.AmbientLight( 0x222222 );
-            // scene.add( ambientLight );
-            // var lights = [];
-			// lights[ 0 ] = new THREE.PointLight( 0xff0000, 1, 0 );
-			// lights[ 1 ] = new THREE.PointLight( 0x00ff00, 1, 0 );
-			// lights[ 2 ] = new THREE.PointLight( 0x0000ff, 1, 0 );
-
-			// lights[ 0 ].position.set( -22, 0, 22 );
-			// lights[ 1 ].position.set( 22, 0, 22 );
-			// lights[ 2 ].position.set( 0, 0 , 22 );
-
-			// scene.add( lights[ 0 ] );
-			// scene.add( lights[ 1 ] );
-			// scene.add( lights[ 2 ] );
+		
 			window.addEventListener( 'resize', onWindowResize, false );
 			function onWindowResize() {
 				camera.aspect = window.innerWidth / window.innerHeight;
@@ -101,7 +87,7 @@
 			var options = {
 				wave: false,
 				point:{
-					size:20,
+					size:7,
 					depth:.8
 				},
 				camera:{
@@ -109,14 +95,14 @@
 				},
 				fogNear:scene.fog.near,
 				fogFar:scene.fog.far,
-				ToRabbit: function(){
-					morphTo(rabbitPoint);
+				ToModel1: function(){
+					morphTo(modelPoint[0]);
 				},
-				ToPear: function(){
-					morphTo(deerPoint);
+				ToModel2: function(){
+					morphTo(modelPoint[1]);
 				},
-				ToEarth: function(){
-					morphTo(earthPoint);
+				ToModel3: function(){
+					morphTo(modelPoint[2]);
 				}
 			}
 			var gui = new dat.GUI({width: 300});
@@ -126,9 +112,9 @@
 			_f.add(options, 'fogNear').min(.1).max(20).name('Near');
 			_f.add(options, 'fogFar').min(20).max(60).name('Far');
 			_f.open();
-			gui.add(options, 'ToRabbit').name('Morph to 🐇');
-			gui.add(options, 'ToPear').name('Morph to 🍐');
-			gui.add(options, 'ToEarth').name('Morph to Earth');
+			gui.add(options, 'ToModel1').name('Morph to Model 1');
+			gui.add(options, 'ToModel2').name('Morph to Model 2');
+			gui.add(options, 'ToModel3').name('Morph to Model 3');
 			gui.add(options, 'wave').name('wave');
 
 			
@@ -156,7 +142,8 @@
 			var pointsGeometry = new THREE.BufferGeometry();
 			var pointsMaterial;
 			var finallyPoint;
-			var deerPoint,rabbitPoint,earthPoint;
+			// var deerPoint,model1Point,earthPoint;
+			var modelPoint = [];
 			var color = 0xff00ff;
 			var uniforms = {
 				time: { value: 0 },
@@ -200,46 +187,77 @@
 					pointsGeometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ));
 
 					finallyPoint = new THREE.Points( pointsGeometry, pointsMaterial );
-					finallyPoint.scale.set(3,3,3);
+					finallyPoint.scale.set(2,2,2);
 					scene.add(finallyPoint);
 
-					morphTo(rabbitPoint);
+					morphTo(modelPoint[0]);
 				};
 
-				var loader = new THREE.OBJLoader2(manager);
-				loader.load( './model1.obj', function ( obj ) {
-					var geometry = obj.detail.loaderRootNode;
-					geometry.traverse( function( child ) {
-						if ( child instanceof THREE.Mesh ) {
+				var objFiles = [
+					['./model1.obj', -5],
+					['./model2.obj', -6.5],
+					['./model3.obj', -6.5]
+				];
 
-							// change to geometry
-							var geo = new THREE.Geometry().fromBufferGeometry( child.geometry );
-							geo.mergeVertices();
-							rabbitPoint = new THREE.Points( geo , pointsMaterial );
-							for(var i=0; rabbitPoint.geometry.vertices[i]; i++){
-								rabbitPoint.geometry.vertices[i].y -= 3;
-							}
-							console.log('rabbit: ',rabbitPoint.geometry.vertices.length,rabbitPoint);
-						}
-					});
-				}, null, null, null, false );
 
-				loader = new THREE.OBJLoader2(manager);
-                loader.load( './model2.obj', function ( obj ) {
-					var geometry = obj.detail.loaderRootNode;
-					geometry.traverse( function( child ) {
-						if ( child instanceof THREE.Mesh ) {
-							// change to geometry
-							var geo = new THREE.Geometry().fromBufferGeometry( child.geometry );
-							geo.mergeVertices();
-							deerPoint = new THREE.Points( geo, pointsMaterial );
-							for(var i=0; deerPoint.geometry.vertices[i]; i++){
-								deerPoint.geometry.vertices[i].y -= 1;
+				var loadObj = function(idx, file, reposition){
+					var loader = new THREE.OBJLoader2(manager);
+					loader.load(file, function(obj){
+						var geometry = obj.detail.loaderRootNode;
+						geometry.traverse(function(child){
+							if ( child instanceof THREE.Mesh ){
+
+								// change to geometry
+								var geo = new THREE.Geometry().fromBufferGeometry( child.geometry );
+								geo.mergeVertices();
+								modelPoint[idx] = (new THREE.Points( geo , pointsMaterial ));
+								for(var i=0; modelPoint[idx].geometry.vertices[i]; i++){
+									modelPoint[idx].geometry.vertices[i].y += reposition;
+								}
+								console.log('model1: ',modelPoint[idx].geometry.vertices.length, modelPoint[idx]);
 							}
-							console.log('pear: ',deerPoint.geometry.vertices.length);
-						}
-					});
-				}, null, null, null, false );
+						});
+					}, null, null, null, false );
+				}
+
+				for(var i=0; objFiles[i]; i++){
+					loadObj(i, objFiles[i][0], objFiles[i][1]);
+				}
+
+				// var loader = new THREE.OBJLoader2(manager);
+				// loader.load( './model1.obj', function ( obj ) {
+				// 	var geometry = obj.detail.loaderRootNode;
+				// 	geometry.traverse( function( child ) {
+				// 		if ( child instanceof THREE.Mesh ) {
+
+				// 			// change to geometry
+				// 			var geo = new THREE.Geometry().fromBufferGeometry( child.geometry );
+				// 			geo.mergeVertices();
+				// 			model1Point = new THREE.Points( geo , pointsMaterial );
+				// 			for(var i=0; model1Point.geometry.vertices[i]; i++){
+				// 				model1Point.geometry.vertices[i].y += -5;
+				// 			}
+				// 			console.log('model1: ',model1Point.geometry.vertices.length,model1Point);
+				// 		}
+				// 	});
+				// }, null, null, null, false );
+
+				// loader = new THREE.OBJLoader2(manager);
+                // loader.load( './model2.obj', function ( obj ) {
+				// 	var geometry = obj.detail.loaderRootNode;
+				// 	geometry.traverse( function( child ) {
+				// 		if ( child instanceof THREE.Mesh ) {
+				// 			// change to geometry
+				// 			var geo = new THREE.Geometry().fromBufferGeometry( child.geometry );
+				// 			geo.mergeVertices();
+				// 			deerPoint = new THREE.Points( geo, pointsMaterial );
+				// 			for(var i=0; deerPoint.geometry.vertices[i]; i++){
+				// 				deerPoint.geometry.vertices[i].y += -6.5;
+				// 			}
+				// 			console.log('model2: ',deerPoint.geometry.vertices.length);
+				// 		}
+				// 	});
+				// }, null, null, null, false );
 				
 
 				var geo = new THREE.IcosahedronGeometry(3,4);
@@ -262,9 +280,9 @@
 					}
 					else{
 						target[i] = {
-							x:THREE.Math.randFloat(-10,10),
-							y:THREE.Math.randFloat(-10,10),
-							z:THREE.Math.randFloat(-10,10)
+							x:THREE.Math.randFloat(-20,20),
+							y:THREE.Math.randFloat(-20,20),
+							z:THREE.Math.randFloat(-20,20)
 						};
 					}
 				}

@@ -4,18 +4,19 @@
 		<meta charset=utf-8>
 		<title>particles Earth</title>
 		<style>
-			html,body{ overflow: hidden; cursor: grab; }
+			html,body{ overflow: hidden; cursor: grab; background:#111; }
 			html:active, body:active { cursor: grabbing; }
-			body { padding:0; margin: 0; background: rgb(70,15,44);
-background: linear-gradient(115deg, rgba(70,15,44,1) 0%, rgba(112,23,71,1) 50%, rgba(164,45,72,1) 100%); }
+			/* body { padding:0; margin: 0; background: rgb(70,15,44);
+background: linear-gradient(115deg, rgba(70,15,44,1) 0%, rgba(112,23,71,1) 50%, rgba(164,45,72,1) 100%); } */
 			canvas { width: 100%; height: 100%; }
 		</style>
 	</head>
 	<body>
 		<script id="vertexShader" type="x-shader/x-vertex">
+			attribute vec3 color;
 			uniform float angle;
 			uniform float distance;
-			varying vec3 vColor;
+			varying vec4 vColor;
 			const float PI = 3.1415926535897932384626433832795;
 			void main()	{
 				vec3 newPosition = position;
@@ -27,19 +28,19 @@ background: linear-gradient(115deg, rgba(70,15,44,1) 0%, rgba(112,23,71,1) 50%, 
 				float dist = x + y + z;
 
 				gl_Position = position;
-				gl_PointSize = max((dist / 10.) , 3.);
+				gl_PointSize = dist / 20.;
 
-				float white = max(dist * .001, 0.8);
-				vColor = vec3(98./256.,20./256.,60./256.) * white;
+				//float white = max(dist * .001, 0.8);
+				vColor = vec4(color, dist * .002 );
 			}
 		</script>
 		<script id="fragmentShader" type="x-shader/x-fragment">
 			uniform sampler2D texture;
-			varying vec3 vColor;
+			varying vec4 vColor;
 			void main()	{
 				vec4 textureColor = texture2D(texture, gl_PointCoord);
 				if ( textureColor.w < .8 ) discard;
-				gl_FragColor = vec4(vColor.rgb, 1.) * textureColor;
+				gl_FragColor = vColor * textureColor;
 			}
 		</script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/105/three.min.js"></script>
@@ -122,11 +123,15 @@ background: linear-gradient(115deg, rgba(70,15,44,1) 0%, rgba(112,23,71,1) 50%, 
 			// gui
 			var options = {
 				angle: 45,
-				distance: 16
+				distance: 16,
+				showLocation: true
 			}
 			var gui = new dat.GUI({width: 300});
 			gui.add(options,'angle').min(0).max(360).name('Angle');
 			gui.add(options,'distance').min(1).max(30).name('Distance');
+			gui.add(options,'showLocation').name('Show location').onChange(function(value){
+				locations.visible = value;
+			});
 
 			var createTexture = function(text,size){
 				var actualSize = 1024;
@@ -160,28 +165,37 @@ background: linear-gradient(115deg, rgba(70,15,44,1) 0%, rgba(112,23,71,1) 50%, 
 			};
 			
 
-			var geometry = new THREE.IcosahedronGeometry(.3,3);
+			var geometry = new THREE.IcosahedronGeometry(.3,1);
 			var m = new THREE.MeshBasicMaterial({color: 0xffff00});
-			var _mesh = new THREE.Mesh( geometry, m );
-			_mesh.position.x = 5;
-			_mesh.position.y = 5;
-			_mesh.position.z = 0;
-			scene.add(_mesh);
+			var sun = new THREE.Mesh( geometry, m );
+			sun.position.x = 5;
+			sun.position.y = 5;
+			sun.position.z = 0;
+			scene.add(sun);
 
 
 
 			// particles
 			var locations = new THREE.Group();
-			var particles;
-			var particlesGeometry = new THREE.IcosahedronGeometry(10,3);
+			var particles, particlesGeometry;
 			var init = function(){
+				particlesGeometry = new THREE.IcosahedronGeometry(10,4);
+
+				var count = particlesGeometry.vertices.length;
+
+				// change color
+				var cscale = chroma.scale([0x00b9e0, 0xff880a, 0x5f1b90, 0x7ec08d]);
+				for(var i=0; i<count; i++){
+					particlesGeometry.colors[i] = new THREE.Color(cscale(THREE.Math.randFloat(0, 1)).hex());
+				}
+
 				var particlesMaterial = new THREE.ShaderMaterial({
 					uniforms: uniforms,
 					vertexShader: document.getElementById('vertexShader').textContent,
 					fragmentShader: document.getElementById('fragmentShader').textContent,
-					// blending: THREE.AdditiveBlending,
-					// depthTest: true,
-					// depthWrite: true,
+					blending: THREE.AdditiveBlending,
+					// depthTest: false,
+					depthWrite: false,
     				// transparent: true,
 				});
 				particles = new THREE.Points( particlesGeometry, particlesMaterial );
@@ -207,6 +221,7 @@ background: linear-gradient(115deg, rgba(70,15,44,1) 0%, rgba(112,23,71,1) 50%, 
 					// blending: THREE.AdditiveBlending,
     				transparent: true,
 				});
+				var cscale = chroma.scale([0x00b9e0, 0xff880a, 0x5f1b90, 0x7ec08d]);
 				pointGeometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
 				for(var j=0; j<3; j+=3){
 					var array = pointGeometry.attributes.position.array;
@@ -268,13 +283,15 @@ background: linear-gradient(115deg, rgba(70,15,44,1) 0%, rgba(112,23,71,1) 50%, 
 
 				var timer = (Date.now() - start) * .05;
 
-				_mesh.position.x = options.distance * Math.sin(options.angle * (Math.PI / 180));
-				_mesh.position.y = options.distance * Math.cos(options.angle * (Math.PI / 180));
+				sun.position.x = options.distance * Math.sin(options.angle * (Math.PI / 180));
+				sun.position.y = options.distance * Math.cos(options.angle * (Math.PI / 180));
 
 
 
 				particles.material.uniforms.angle.value = options.angle;
 				particles.material.uniforms.distance.value = options.distance;
+
+				if(particlesGeometry.colors) particlesGeometry.colorsNeedUpdate = true;
 
 				camera.lookAt(new THREE.Vector3(0,0,0));
 				// console.log(camera.position);
