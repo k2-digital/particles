@@ -69,10 +69,6 @@
 		</div>
 		<div id="bgColor"></div>
 		<script id="vertexShader" type="x-shader/x-vertex">
-			//attribute vec3 color;
-			//attribute float isBg;
-
-			//varying vec4 vColor;
 			uniform float time;
 			uniform float size;
 			void main()	{
@@ -87,8 +83,6 @@
 				vec4 position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
 				gl_Position = position;
 
-				//vColor = vec4(color,1.);
-
 				float x = pow(newPosition.x, 2.0);
 				float y = pow(newPosition.y, 2.0);
 				float z = pow(newPosition.z, 2.0);
@@ -99,7 +93,6 @@
 		</script>
 	
 		<script id="fragmentShader" type="x-shader/x-fragment">
-			//varying vec4 vColor;
 			uniform sampler2D texture;
 			uniform vec3 fogColor;
 			uniform float fogNear;
@@ -108,6 +101,7 @@
 				vec4 textureColor = texture2D(texture, gl_PointCoord);
 				if ( textureColor.w < .8 ) discard;
 				gl_FragColor = vec4(255./255., 209./255., 150./255., .05) * textureColor;
+				
 				#ifdef USE_LOGDEPTHBUF_EXT
 					float depth = gl_FragDepthEXT / gl_FragCoord.w;
 				#else
@@ -233,7 +227,7 @@
 					wave: false,
 					lightHelper: false,
 					point:{
-						size:0,
+						size:0.5,
 						depth:.8
 					},
 					camera:{
@@ -489,7 +483,6 @@
 
 				initLocation();
 
-				// var cscale = chroma.scale([0x00b9e0, 0xff880a, 0x5f1b90, 0x7ec08d]);
 				var positions = new Float32Array( ballMaxPoints * 3 );
 				var colors = new Float32Array( ballMaxPoints * 3 );
 				for(var i=0; i<ballMaxPoints; i++){
@@ -977,7 +970,7 @@
 					finallyPoint.position.y += (Math.min(0,moveS2) - finallyPoint.position.y) * .1;
 					finallyPoint.position.z += (Math.max(0,-moveS2 * 1.5) - finallyPoint.position.z) * .1;
 					finallyPoint.geometry.attributes.position.needsUpdate = true;
-					finallyPoint.material.uniforms.size.value = Math.max(3.6,-moveS2) + (options.point.size * Math.max(0,-moveS2));
+					finallyPoint.material.uniforms.size.value = Math.max(5,-moveS2) + (options.point.size * Math.max(0,-moveS2));
 
 					locationPoint.position.y += (Math.min(0,moveS2) - locationPoint.position.y) * .1;
 					locationPoint.position.z += (Math.max(0,-moveS2 * 1.5) - locationPoint.position.z) * .1;
