@@ -2,13 +2,13 @@
 <html>
 	<head>
 		<meta charset=utf-8>
-		<title>particles</title>
+		<title>Landing</title>
 		<style>
 			body { padding:0; margin: 0; position: relative; background:#000; }
 			.dg.ac{ z-index:999 !important; }
 
-			#bg{ width:100%; height:100%; position: fixed; top:0; left:0; z-index: 0; }
-			.color{
+			#bgColor{ width:100%; height:100%; position: fixed; top:0; left:0; z-index: 0; background:#8b2451; }
+			/*.color{
 				width:100%;
 				height:100%;
 				position: absolute;
@@ -19,33 +19,32 @@
 				transition: all .6s ease-out;
 				z-index: 1;
 			}
-			.color.active{
+			 .color.active{
 				opacity: 1;
 				visibility: visible;
 				transition-delay: 0ms;
 				z-index: 2;
 			}
 			#color1{
-				/* background:linear-gradient(333deg, rgba(165,45,72,1) 0%, rgba(125,26,78,1) 40%, rgba(63,12,39,1) 100%);  */
 				background:#8b2451;
 			}
 			#color2{
-				background:linear-gradient(225deg, rgb(34, 34, 34) 0%, rgb(39, 39, 39) 30%, rgb(51, 51, 51) 100%); 
+				background:#977F7F;
 			}
 			#color3{
 				background:linear-gradient(225deg, rgba(2,72,66,1) 0%, rgba(0,81,76,1) 30%, rgba(0,108,110,1) 100%); 
 			}
 			#color4{
 				background:linear-gradient(331deg, rgba(8,1,99,1) 0%, rgba(15,12,64,1) 70%, rgba(3,4,38,1) 100%);
-			}
+			} */
 
 			#sectionWrap{ width:100%; position: relative; z-index:2; }
 			#sectionWrap .section{ width:100%; height:100vh; color:#fff; }
 			#sectionWrap .section > span{ position: absolute; }
-			#sectionWrap .section #balls{ width:100%; height:100%; position: relative; }
+			#sectionWrap .section #balls{ width:100%; height:100%; position: relative; font-family: sans-serif; font-weight: 100; }
 			#sectionWrap .section #balls .ballDiv{ width:19vh; position: absolute; cursor: pointer; opacity:0; visibility: hidden; }
 			#sectionWrap .section #balls .ballDiv:after{ content:''; display:block; padding-top:100%; }
-			#sectionWrap .section #balls .ballDiv span{ font-size:20px; color:#fff; text-align: center; position: absolute; top:50%; left:50%; transform: translate3d(-50%,-50%,0); }
+			#sectionWrap .section #balls .ballDiv span{ width: 100%; font-size:20px; color:#fff; text-align: center; position: absolute; top:50%; left:50%; transform: translate3d(-50%,-50%,0); }
 			canvas{ position: fixed; top:0; left:0; display: block; z-index:1; }
 		</style>
 	</head>
@@ -58,22 +57,17 @@
 			<div class="section"><span>3</span>
 				<div id="balls">
 					<div class="ballDiv"><span>Real<br/>Estate</span></div>
-					<div class="ballDiv"></div>
-					<div class="ballDiv"></div>
-					<div class="ballDiv"></div>
-					<div class="ballDiv"></div>
-					<div class="ballDiv"></div>
-					<div class="ballDiv"></div>
-					<div class="ballDiv"></div>
+					<div class="ballDiv"><span>Aircraft<br/>Leasing</span></div>
+					<div class="ballDiv"><span>Education</span></div>
+					<div class="ballDiv"><span>Health<br/>Care</span></div>
+					<div class="ballDiv"><span>Energy</span></div>
+					<div class="ballDiv"><span>Hospitality</span></div>
+					<div class="ballDiv"><span>CTFE<br/>Ventures</span></div>
+					<div class="ballDiv"><span>New World<br/>Group</span></div>
 				</div>
 			</div>
 		</div>
-		<div id="bg">
-			<div id="color1" class="color active"></div>
-			<div id="color2" class="color"></div>
-			<div id="color3" class="color"></div>
-			<div id="color4" class="color"></div>
-		</div>
+		<div id="bgColor"></div>
 		<script id="vertexShader" type="x-shader/x-vertex">
 			//attribute vec3 color;
 			//attribute float isBg;
@@ -97,7 +91,7 @@
 
 				float x = pow(newPosition.x, 2.0);
 				float y = pow(newPosition.y, 2.0);
-				float z = pow(newPosition.z + 15., 2.0);
+				float z = pow(newPosition.z, 2.0);
 				float dist = x + y + z;
 
 				gl_PointSize = size + (dist / 100.);
@@ -187,18 +181,20 @@
 			}
 
 
-			var maxPoints = 32000;
+			var ballMaxPoints = 20496;
 			var bgPoints = 1000;
+			var modelMaxPoints = 31000;
 			var started = false;
 			var options = {};
 			var scene, camera, renderer;
-			var finallyPoint, bgPoint, modelPoint = [];
+			var finallyPoint, bgPoint, model = [];
 			var pointsGeometry, bgPointsGeometry, cubePointsGeometry;
 			var pointsMaterial, uniforms;
-			var targetMesh, target = [];
+			var ballPos = {targetPos:[],tempTargetPos:[]};
+			var modelPos = {targetPos:[],tempTargetPos:[]};
 			var objFiles = [
-				['./model1.obj', -5],
-				['./model2.obj', -6.5],
+				['./model1.obj', -9],
+				['./model2.obj', -12],
 				['./model3.obj', -12.5]
 			];
 			var latlog = [
@@ -212,18 +208,19 @@
 			var section = 0;
 			var oldSection = 0;
 			var ballDegree = 360/8;
+			var loaded = false;
 
 			var init = function(){
 				scene = new THREE.Scene();
-				scene.fog = new THREE.Fog( 0x000000, 53, 63 );
-				scene.fog.color = new THREE.Color(0x3f0c27);
+				scene.fog = new THREE.Fog( 0x000000, 53, 100 );
+				scene.fog.color = new THREE.Color(0x8b2451);
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
 				camera.position.z = 55;
 				var dist = camera.position.z;
 				var vFOV = THREE.Math.degToRad( camera.fov );
 				screenHeight = 2 * Math.tan( vFOV / 2 ) * dist;
 				screenwidth = screenHeight * camera.aspect;
-				var controls = new THREE.OrbitControls( camera );
+				// var controls = new THREE.OrbitControls( camera );
 
 				renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -247,18 +244,18 @@
 					ToModel1: function(){
 						// morphTo(ballsPoint);
 						TweenMax.to('html,body',1,{scrollTop:0, ease:Power4.easeOut});
-						TweenMax.to(locationPoint.material.uniforms.size, .6, {value: 0, overwrite:'all', ease:Power4.easeOut});
+						// TweenMax.to(locationPoint.material.uniforms.size, .6, {value: 0, overwrite:'all', ease:Power4.easeOut});
 					},
 					ToModel2: function(){
-						morphTo(earthPoint);
+						// morphTo(earthPoint);
 						TweenMax.to('html,body',1,{scrollTop:1 * window.innerHeight, ease:Power4.easeOut});
-						TweenMax.to(locationPoint.material.uniforms.size, 1.3, {value: 1, ease:Elastic.easeOut.config(1, 0.3)});
+						// TweenMax.to(locationPoint.material.uniforms.size, 1.3, {value: 1, ease:Elastic.easeOut.config(1, 0.3)});
 					},
 					ToModel3: function(){
-						morphTo(cubePoints);
-						setTimeout(function(){morphTo(ballsPoint);},1000);
+						// morphTo(cubePoints);
+						// morphTo(ballsPoint);
 						TweenMax.to('html,body',1,{scrollTop:2 * window.innerHeight, ease:Power4.easeOut});
-						TweenMax.to(locationPoint.material.uniforms.size, .6, {value: 0, overwrite:'all', ease:Power4.easeOut});
+						// TweenMax.to(locationPoint.material.uniforms.size, .6, {value: 0, overwrite:'all', ease:Power4.easeOut});
 					}
 				}
 
@@ -293,11 +290,11 @@
 					_f.add(options, 'fogNear').min(.1).max(100).name('Near');
 					_f.add(options, 'fogFar').min(20).max(100).name('Far');
 					_f.open();
-					gui.add(options, 'ToModel1').name('Section 1');
-					gui.add(options, 'ToModel2').name('Section 2');
-					gui.add(options, 'ToModel3').name('Section 3');
+					gui.add(options, 'ToModel1').name('Go Section 1');
+					gui.add(options, 'ToModel2').name('Go Section 2');
+					gui.add(options, 'ToModel3').name('Go Section 3');
 					gui.add(options, 'wave').name('Let\'s Wave!');
-					gui.add(options, 'lightHelper').name('Enable light helper');
+					gui.add(options, 'lightHelper').name('Show light helper');
 			}
 
 			var createTexture = function(color, text, fontSize, circleSize){
@@ -323,8 +320,10 @@
 			var initParticle = function(){
 				pointsGeometry = new THREE.BufferGeometry();
 				bgPointsGeometry = new THREE.BufferGeometry();
+				modelPointsGeometry = new THREE.BufferGeometry();
 				cubePointsGeometry = new THREE.BufferGeometry();
 				
+
 				uniforms = {
 					time: { value: 0 },
 					size: { value: options.point.size },
@@ -348,27 +347,12 @@
 					// transparent: true,
 					fog:true
 				});
-
-
-				// cube point position
-				var positions = new Float32Array( maxPoints * 3 );
-				for(var i=0; i<maxPoints; i++){
-					var pos = new THREE.Vector3(
-						THREE.Math.randFloat(-20,20),
-						THREE.Math.randFloat(-20,20),
-						50
-					);
-					pos.toArray(positions,i*3);
-				}
-				cubePointsGeometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-				cubePoints = new THREE.Points( cubePointsGeometry, new THREE.MeshBasicMaterial() );
 			}
 
 			var initBg = function(){
 				var positions = new Float32Array( bgPoints * 3 );
 				tempBgPos = new Float32Array( bgPoints * 3 );
 				var colors = new Float32Array( bgPoints * 3 );
-				// var isBg = new Float32Array( bgPoints );
 				for(var i=0; i<bgPoints; i++){
 					var pos = new THREE.Vector3(
 						THREE.Math.randFloat(-10,10),
@@ -380,12 +364,9 @@
 
 					color = new THREE.Color(0xffffff);
 					color.toArray(colors, i*3);
-
-					// isBg[i] = true;
 				}
 				bgPointsGeometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
 				bgPointsGeometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ));
-				// bgPointsGeometry.addAttribute( 'isBg', new THREE.BufferAttribute( isBg, 1 ));
 				bgPoint = new THREE.Points( bgPointsGeometry, new THREE.PointsMaterial({ 
 					size:.1, 
 					color:0xffffff, 
@@ -398,47 +379,48 @@
 
 
 			var initSection1 = function(){
-				var radius = 14;
+				var radius = 15;
+				ballsLightsGroup = new THREE.Group();
 				ballsGroup = new THREE.Group();
-				var sphere = new THREE.IcosahedronGeometry(4.3,4);
+				var sphere = new THREE.IcosahedronGeometry(4.6,4);
 				for(var i=0; i<8; i++){
 					var ball = sphere.clone();
 					var ballMesh = new THREE.Mesh( ball, new THREE.MeshPhongMaterial({ 
 						color: 0x8b2451,
 						shininess:0,
-						specular: 0xffffff
+						specular: 0x01FFFC
 					}));
 					ballMesh.position.x = radius * Math.sin((ballDegree*i) * (Math.PI/180));
 					ballMesh.position.y = radius * Math.cos((ballDegree*i) * (Math.PI/180));
 					ballMesh.layers.set(i+1);
 					ballsGroup.add(ballMesh);
 				}
-				scene.add(ballsGroup);
+				ballsLightsGroup.add(ballsGroup);
 
 				// lights
 				lightsGroup = new THREE.Group();
 				lightsHelperGroup = new THREE.Group();
-				var lightParms = [
+				lightParms = [
 					{
 						position: new THREE.Vector3(-10,2,-7),
 						intensity: 7,
-						distance: 18,
+						distance: 20,
 						angle: .5
 					},
 					{
 						position: new THREE.Vector3(0,0,5),
-						intensity: 3,
+						intensity: 4,
+						distance: 20,
+						angle: .5
+					},
+					{
+						position: new THREE.Vector3(0,0,-8),
+						intensity: 10,
 						distance: 18,
 						angle: .5
 					},
 					{
-						position: new THREE.Vector3(0,0,-10),
-						intensity: 10,
-						distance: 18,
-						angle: .45
-					},
-					{
-						position: new THREE.Vector3(-5,5,-5),
+						position: new THREE.Vector3(-5,3,-2),
 						intensity: 4,
 						distance: 30,
 						angle: .6
@@ -451,27 +433,28 @@
 					},
 					{
 						position: new THREE.Vector3(0,0,4),
-						intensity: 3,
-						distance: 18,
-						angle: .6
-					},
-					{
-						position: new THREE.Vector3(0,-7,3),
-						intensity: 3,
-						distance: 18,
-						angle: .6
-					},
-					{
-						position: new THREE.Vector3(0,0,15),
 						intensity: 4,
+						distance: 18,
+						angle: .6
+					},
+					{
+						position: new THREE.Vector3(0,-8,3),
+						intensity: 3,
 						distance: 22,
 						angle: .6
+					},
+					{
+						position: new THREE.Vector3(0,0,13),
+						intensity: 6,
+						distance: 22,
+						angle: .7
 					}
 				]
 				for(var i=0; i<8; i++){
 					if(lightParms[i]){
-						var spotLight = new THREE.SpotLight( 0x669E23, lightParms[i].intensity, lightParms[i].distance, lightParms[i].angle, 1 );
+						var spotLight = new THREE.SpotLight( 0x669E23,lightParms[i].intensity, lightParms[i].distance, lightParms[i].angle, 1 );
 						spotLight.position.copy(lightParms[i].position);
+						spotLight.position.z = -50;
 						spotLight.target = ballsGroup.children[i];
 						spotLight.layers.set(i+1);
 						lightsGroup.add(spotLight);
@@ -486,8 +469,14 @@
 					}
 				}
 				lightsHelperGroup.visible = false;
-				scene.add(lightsGroup);
-				scene.add(lightsHelperGroup);
+				ballsLightsGroup.add(lightsGroup);
+				ballsLightsGroup.add(lightsHelperGroup);
+
+				// initial position
+				var moveS1 = screenHeight * ((window.pageYOffset)/window.innerHeight);
+				ballsLightsGroup.position.y = Math.max(0,moveS1*1.15);
+				ballsLightsGroup.position.z = Math.min(0,-moveS1/2);
+				scene.add(ballsLightsGroup);
 			}
 
 
@@ -499,7 +488,40 @@
 				earthPoint = new THREE.Points( geometry , pointsMaterial );
 
 				initLocation();
+
+				// var cscale = chroma.scale([0x00b9e0, 0xff880a, 0x5f1b90, 0x7ec08d]);
+				var positions = new Float32Array( ballMaxPoints * 3 );
+				var colors = new Float32Array( ballMaxPoints * 3 );
+				for(var i=0; i<ballMaxPoints; i++){
+					color = new THREE.Color(0xffffff);
+					color.toArray(colors, i*3);
+
+					if(earthPoint.geometry.vertices[i]){
+						var pos = new THREE.Vector3(
+							earthPoint.geometry.vertices[i].x,
+							earthPoint.geometry.vertices[i].y,
+							earthPoint.geometry.vertices[i].z
+						);
+					}
+					else{
+						var idx = THREE.Math.randInt(0,Math.round(earthPoint.geometry.vertices.length-1));
+						var pos = new THREE.Vector3(
+							earthPoint.geometry.vertices[idx].x,
+							earthPoint.geometry.vertices[idx].y,
+							earthPoint.geometry.vertices[idx].z
+						);
+					}
+					pos.toArray(positions, i*3);
+				}
+				pointsGeometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+				pointsGeometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ));
+
+				finallyPoint = new THREE.Points( pointsGeometry, pointsMaterial );
+				finallyPoint.position.y = Math.min(0,screenHeight * ((window.pageYOffset - window.innerHeight)/window.innerHeight));
+				finallyPoint.position.z = -10;
+				scene.add(finallyPoint);
 			}
+
 
 
 			var initLocation = function(){
@@ -599,10 +621,85 @@
 				}
 				ballsPoint = new THREE.Points( combined, new THREE.PointsMaterial({ 
 					size:.15,
-					color: 0xffffff, 
+					color: 0xffffff,
 					transparent:true
 				}));
-				// scene.add(ballsPoint);
+
+
+
+				// cube point position
+				var positions = new Float32Array( modelMaxPoints * 3 );
+				for(var i=0; i<modelMaxPoints; i++){
+					var pos = new THREE.Vector3(
+						THREE.Math.randFloat(-200,200),
+						THREE.Math.randFloat(-200,200),
+						-200
+					);
+					pos.toArray(positions,i*3);
+				}
+				cubePointsGeometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+				cubePoints = new THREE.Points( cubePointsGeometry, new THREE.MeshBasicMaterial() );
+
+
+
+				var positions = new Float32Array( modelMaxPoints * 3 );
+				// var colors = new Float32Array( modelMaxPoints * 3 );
+				for(var i=0; i<modelMaxPoints; i++){
+					// color = new THREE.Color(0xffffff);
+					// color.toArray(colors, i*3);
+
+					var pos = new THREE.Vector3(
+						cubePoints.geometry.attributes.position.array[i*3+0],
+						cubePoints.geometry.attributes.position.array[i*3+1],
+						cubePoints.geometry.attributes.position.array[i*3+2]
+					);
+					pos.toArray(positions, i*3);
+				}
+				modelPointsGeometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+				// modelPointsGeometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ));
+
+				var uniforms = {
+					texture:{
+						type: "t",
+						value: new THREE.CanvasTexture(createTexture('white'))//new THREE.TextureLoader().load('https://klevron.github.io/codepen/misc/star.png')
+					}
+				}
+
+				var modelPointsMaterial = new THREE.ShaderMaterial({ 
+					uniforms: uniforms,
+					vertexShader: [
+						'void main(){',
+							'vec3 newPosition = position;',
+							'vec4 position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);',
+							'gl_Position = position;',
+
+							'float x = pow(newPosition.x, 2.0);',
+							'float y = pow(newPosition.y, 2.0);',
+							'float z = pow(newPosition.z, 2.0);',
+							'float dist = x + y + z;',
+							'gl_PointSize = 6. - dist / 10000.;',
+						'}'
+					].join('\n'),
+					fragmentShader: [
+						'uniform sampler2D texture;',
+						'void main(){',
+							'vec4 textureColor = texture2D(texture, gl_PointCoord);',
+
+							'if ( textureColor.w < .8 ) discard;',
+							'gl_FragColor = vec4(1., 1., 1., .2) * textureColor;',
+						'}'
+					].join('\n'),
+					blending: THREE.AdditiveBlending,
+					depthWrite: false,
+				});
+
+				modelPoint = new THREE.Points( modelPointsGeometry, modelPointsMaterial);
+				modelPoint.scale.set(1.2, 1.2, 1.2);
+				scene.add(modelPoint);
+
+
+
+
 
 				// init div
 				initBallDiv();
@@ -610,7 +707,7 @@
 
 			var initBallDiv = function(){
 				ballDiv = document.querySelectorAll('.ballDiv');
-				// initBallDivEvent();
+				initBallDivEvent();
 				updateBallDiv();
 			}
 			var initBallDivEvent = function(){
@@ -618,17 +715,15 @@
 					(function(idx){
 						var idx = idx;
 						ballDiv[idx].addEventListener('mouseenter',function(){
-							if(idx == 0){
-								morphTo(ballsPoint);
-							}
-							else if(idx == 1){
-								morphTo(modelPoint[1]);
-							}
+							if(model[idx])
+							modelPos = morphTo(modelPoint, model[idx], modelMaxPoints);
+							
 							TweenMax.to(ballsPoint.material, 1, {opacity: 0.1, overwrite:'all', ease:Power4.easeOut});
 						},false);
+
 						ballDiv[idx].addEventListener('mouseleave',function(){
 							TweenMax.to(ballsPoint.material, 1, {opacity: 1, ease:Power4.easeOut, onComplete(){
-								morphTo(cubePoints);
+								modelPos = morphTo(modelPoint, cubePoints, modelMaxPoints);
 							}});
 						},false);
 					})(i);
@@ -651,40 +746,15 @@
 				manager.onLoad = function(){
 					console.log( 'Loading complete!');
 
-					// init
-					var cscale = chroma.scale([0x00b9e0, 0xff880a, 0x5f1b90, 0x7ec08d]);
-					var positions = new Float32Array( maxPoints * 3 );
-					var colors = new Float32Array( maxPoints * 3 );
-					for(var i=0; i<maxPoints; i++){
-						color = new THREE.Color(0xffffff);
-						color.toArray(colors, i*3);
 
-						if(earthPoint.geometry.vertices[i]){
-							var pos = new THREE.Vector3(
-								earthPoint.geometry.vertices[i].x,
-								earthPoint.geometry.vertices[i].y,
-								earthPoint.geometry.vertices[i].z
-							);
-						}
-						else{
-							var idx = THREE.Math.randInt(0,Math.round(earthPoint.geometry.vertices.length-1));
-							var pos = new THREE.Vector3(
-								earthPoint.geometry.vertices[idx].x,
-								earthPoint.geometry.vertices[idx].y,
-								earthPoint.geometry.vertices[idx].z
-							);
-						}
-						pos.toArray(positions, i*3);
+					// light
+					var tl = new TimelineMax();
+					for(var i=0; i<lightsGroup.children.length; i++){
+						tl.to(lightsGroup.children[i].position, 3, {z:lightParms[i].position.z, ease:Power4.easeOut},'s');
+						// tl.to(lightsGroup.children[i],.6,{intensity:lightParms[i].intensity, ease:Power2.easeInOut},'-=.55');
 					}
-					pointsGeometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-					pointsGeometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ));
 
-					finallyPoint = new THREE.Points( pointsGeometry, pointsMaterial );
-					finallyPoint.position.y = Math.min(0,screenHeight * ((window.pageYOffset - window.innerHeight)/window.innerHeight));
-					finallyPoint.position.z = -10;
-					scene.add(finallyPoint);
-
-					// morphTo(modelPoint[0],'#color1',{color:0x3f0c27});
+					loaded = true;
 				};
 
 				// load .obj file
@@ -697,14 +767,14 @@
 								// change to geometry
 								var geo = new THREE.Geometry().fromBufferGeometry( child.geometry );
 								geo.mergeVertices();
-								modelPoint[idx] = new THREE.Points( geo , pointsMaterial );
-								modelPoint[idx].scale.set(2,2,2);
-								modelPoint[idx].updateMatrix();
-								modelPoint[idx].geometry.applyMatrix( modelPoint[idx].matrix );
-								for(var i=0; modelPoint[idx].geometry.vertices[i]; i++){
-									modelPoint[idx].geometry.vertices[i].y += reposition;
+								model[idx] = new THREE.Points( geo , pointsMaterial );
+								model[idx].scale.set(2,2,2);
+								model[idx].updateMatrix();
+								model[idx].geometry.applyMatrix( model[idx].matrix );
+								for(var i=0; model[idx].geometry.vertices[i]; i++){
+									model[idx].geometry.vertices[i].y += reposition;
 								}
-								console.log('model'+(idx+1)+': ',modelPoint[idx].geometry.vertices.length, modelPoint[idx]);
+								console.log('model'+(idx+1)+': ',model[idx].geometry.vertices.length, model[idx]);
 							}
 						});
 					}, null, null, null, false );
@@ -717,11 +787,14 @@
             }
 
 			
-			var morphTo = function(mesh){
-				var pos = pointsGeometry.attributes.position.array;
+			var morphTo = function(fromMesh, toMesh, maxPoints){
+				var pos = fromMesh.geometry.attributes.position.array;
 				var isGeometry;
 				var posArray;
-				mesh.traverse(function(child){
+				var toMesh = toMesh;
+				var targetGeoPos = [];
+				var tempTargetGeoPos = [];
+				toMesh.traverse(function(child){
 					if ( child.geometry instanceof THREE.Geometry ){
 						isGeometry = true;
 					}
@@ -730,28 +803,32 @@
 						posArray = child.geometry.attributes.position.array;
 					}
 				});
-				targetMesh = mesh;
 				for(var i=0; i<maxPoints; i++){
+					targetGeoPos[i] = {
+						x: THREE.Math.randFloat(-15,15),
+						y: THREE.Math.randFloat(-15,15),
+						z: THREE.Math.randFloat(-15,15)
+					}
 					if(isGeometry){
-						if(i < targetMesh.geometry.vertices.length){
-							target[i] = {
-								x: targetMesh.geometry.vertices[i].x,
-								y: targetMesh.geometry.vertices[i].y,
-								z: targetMesh.geometry.vertices[i].z
+						if(i < toMesh.geometry.vertices.length){
+							tempTargetGeoPos[i] = {
+								x: toMesh.geometry.vertices[i].x,
+								y: toMesh.geometry.vertices[i].y,
+								z: toMesh.geometry.vertices[i].z
 							};
 						}
 						else{
-							var idx = THREE.Math.randInt(0,targetMesh.geometry.vertices.length-1);
-							target[i] = {
-								x: targetMesh.geometry.vertices[idx].x,
-								y: targetMesh.geometry.vertices[idx].y,
-								z: targetMesh.geometry.vertices[idx].z
+							var idx = THREE.Math.randInt(0,toMesh.geometry.vertices.length-1);
+							tempTargetGeoPos[i] = {
+								x: toMesh.geometry.vertices[idx].x,
+								y: toMesh.geometry.vertices[idx].y,
+								z: toMesh.geometry.vertices[idx].z
 							};
 						}
 					}
 					else{
 						if(i < Math.round(posArray.length/3)){
-							target[i] = {
+							tempTargetGeoPos[i] = {
 								x: posArray[i*3+0],
 								y: posArray[i*3+1],
 								z: posArray[i*3+2]
@@ -759,15 +836,20 @@
 						}
 						else{
 							var idx = THREE.Math.randInt(0,Math.round(posArray.length/3));
-							target[i] = {
-								x: targetMesh.geometry.vertices[idx].x,
-								y: targetMesh.geometry.vertices[idx].y,
-								z: targetMesh.geometry.vertices[idx].z
+							tempTargetGeoPos[i] = {
+								x: toMesh.geometry.vertices[idx].x,
+								y: toMesh.geometry.vertices[idx].y,
+								z: toMesh.geometry.vertices[idx].z
 							};
 						}
 					}
 				}
+				return {
+					targetPos: targetGeoPos,
+					tempTargetPos: tempTargetGeoPos
+				}
 
+				// targetPos = tempTargetPos;
 				// update bg color
 				// removeClass(document.querySelector('.color.active'),'active');
 				// addClass(document.querySelector(bgColor), 'active');
@@ -779,57 +861,130 @@
 			}
 
 
+			var updateSection = function(section){
+				if(section == 1){
+					TweenMax.to(locationPoint.material.uniforms.size, .6, {value: 0, overwrite:'all', ease:Power4.easeOut});
+					scene.fog.color = new THREE.Color(0x8b2451);
+					TweenMax.to('#bgColor', 1, {backgroundColor: '#8b2451', overwrite:'all', ease:Power3.easeOut});
+				}
+				else if(section == 2){
+					TweenMax.to(locationPoint.material.uniforms.size, 2, {value: 1, ease:Elastic.easeOut.config(1, 0.3)});
+					scene.fog.color = new THREE.Color(0x977F7F);
+					TweenMax.to('#bgColor', 1, {backgroundColor: '#977F7F', overwrite:'all', ease:Power3.easeOut});
+					if(oldSection == 3)
+						ballPos = morphTo(finallyPoint, earthPoint, ballMaxPoints);
+
+					TweenMax.staggerTo('.ballDiv', .2, {autoAlpha: 0, ease:Power4.easeOut});
+				}
+				else if(section == 3){
+					TweenMax.to(locationPoint.material.uniforms.size, .6, {value: 0, overwrite:'all', ease:Power4.easeOut});
+					scene.fog.color = new THREE.Color(0xFE736C);
+					TweenMax.to('#bgColor', 1, {backgroundColor: '#FE736C', overwrite:'all', ease:Power3.easeOut});
+					ballPos = morphTo(finallyPoint, ballsPoint, ballMaxPoints);
+
+					newdeltaMove.x = 0;
+					newdeltaMove.y = 0;
+					finallyPoint.rotation.x = 0;
+					finallyPoint.rotation.y = 0;
+					finallyPoint.rotation.z = 0;
+
+					TweenMax.staggerTo('.ballDiv', 1, {delay:1, autoAlpha: 1, overwrite:'all', ease:Power3.easeOut},.08);
+				}
+				oldSection = section;
+			}
 
 			var start = Date.now();
             var update = function () {
 				var timer = (Date.now() - start) / 10000;
 
-				if(window.pageYOffset >= (section * window.innerHeight)){
-					// if(section != oldSection){
+
+				// if all loaded
+				if(loaded){
+
+					// update section
+					if(window.pageYOffset >= (section * window.innerHeight)){
 						section++;
-						// oldSection = section;
-					// }
-				}
-				else if(window.pageYOffset < ((section-1) * window.innerHeight)){
-					// if(section != oldSection){
-						section--;
-						// oldSection = section;
-					// }
-				}
-				// console.log(section, window.pageYOffset, section * window.innerHeight);
-
-				if(targetMesh){
-					var pos = pointsGeometry.attributes.position.array;
-					for(var i=0; i<maxPoints; i++){
-						pos[i*3+0] += (target[i].x - pos[i*3+0]) * .04;
-						pos[i*3+1] += (target[i].y - pos[i*3+1]) * .04;
-						pos[i*3+2] += (target[i].z - pos[i*3+2]) * .04;
-
-						// if(section == 3){
-							// pos[i*3+0] += (Math.sin(target[i].x * timer) * .2) * Math.cos(target[i].y);
-							// pos[i*3+1] += (Math.cos(target[i].y * timer) * .2) * (Math.sin(target[i].x));
-							// pos[i*3+2] += Math.cos(target[i].z + timer);
-						// } 
+						updateSection(section);
 					}
-				}
+					else if(window.pageYOffset < ((section-1) * window.innerHeight)){
+						section--;
+						updateSection(section);
+					}
 
-				// 
-				if(finallyPoint){
+
+					// drag function
+					if(section <= 2){
+						var deltaRotationQuaternion = new THREE.Quaternion().setFromEuler(
+							new THREE.Euler(
+								toRadians(newdeltaMove.y * .3),
+								toRadians(newdeltaMove.x * .3),
+								0,
+								'XYZ'
+							)
+						);
+						locationPoint.quaternion.multiplyQuaternions(deltaRotationQuaternion, locationPoint.quaternion);
+						finallyPoint.quaternion.multiplyQuaternions(deltaRotationQuaternion, finallyPoint.quaternion);
+						// finallyPoint.updateMatrix(); 
+						// finallyPoint.geometry.applyMatrix( finallyPoint.matrix );
+						// finallyPoint.matrix.identity();
+						// finallyPoint.rotation.set(0,0,0);
+						// finallyPoint.updateMatrix(); 
+					}
+
+
+					var bpos = finallyPoint.geometry.attributes.position.array;
+					for(var i=0; i<ballMaxPoints; i++){
+						if(ballPos.targetPos.length){
+							ballPos.targetPos[i].x += (ballPos.tempTargetPos[i].x - ballPos.targetPos[i].x) * .04;
+							ballPos.targetPos[i].y += (ballPos.tempTargetPos[i].y - ballPos.targetPos[i].y) * .04;
+							ballPos.targetPos[i].z += (ballPos.tempTargetPos[i].z - ballPos.targetPos[i].z) * .04;
+							
+							bpos[i*3+0] += (ballPos.targetPos[i].x - bpos[i*3+0]) * .04;
+							bpos[i*3+1] += (ballPos.targetPos[i].y - bpos[i*3+1]) * .04;
+							bpos[i*3+2] += (ballPos.targetPos[i].z - bpos[i*3+2]) * .04;
+						}
+					}
+
+
+					var mpos = modelPoint.geometry.attributes.position.array;
+					for(var i=0; i<modelMaxPoints; i++){
+						if(modelPos.targetPos.length){
+							modelPos.targetPos[i].x += (modelPos.tempTargetPos[i].x - modelPos.targetPos[i].x) * .04;
+							modelPos.targetPos[i].y += (modelPos.tempTargetPos[i].y - modelPos.targetPos[i].y) * .04;
+							modelPos.targetPos[i].z += (modelPos.tempTargetPos[i].z - modelPos.targetPos[i].z) * .04;
+							
+							mpos[i*3+0] += (modelPos.targetPos[i].x - mpos[i*3+0]) * .04;
+							mpos[i*3+1] += (modelPos.targetPos[i].y - mpos[i*3+1]) * .04;
+							mpos[i*3+2] += (modelPos.targetPos[i].z - mpos[i*3+2]) * .04;
+						}
+					}
+
+
+
 					if(options.wave)
 						finallyPoint.material.uniforms.time.value+=.05;
 					else
 						finallyPoint.material.uniforms.time.value = 0;
 
-					var move = screenHeight * ((window.pageYOffset - window.innerHeight)/window.innerHeight);
+					var moveS1 = screenHeight * ((window.pageYOffset)/window.innerHeight);
+					var moveS2 = screenHeight * ((window.pageYOffset - window.innerHeight)/window.innerHeight);
 
-					finallyPoint.position.y += (Math.min(0,move) - finallyPoint.position.y) * .1;
-					finallyPoint.position.z += (Math.max(0,-move * 1.5) - finallyPoint.position.z) * .1;
-					locationPoint.position.y += (Math.min(0,move) - locationPoint.position.y) * .1;
-					locationPoint.position.z += (Math.max(0,-move * 1.5) - locationPoint.position.z) * .1;
 
+					ballsLightsGroup.position.y += (Math.max(0,moveS1*1.15) - ballsLightsGroup.position.y) * .1;
+					ballsLightsGroup.position.z += (Math.min(0,-moveS1/2) - ballsLightsGroup.position.z) * .1;
+
+
+					finallyPoint.position.y += (Math.min(0,moveS2) - finallyPoint.position.y) * .1;
+					finallyPoint.position.z += (Math.max(0,-moveS2 * 1.5) - finallyPoint.position.z) * .1;
 					finallyPoint.geometry.attributes.position.needsUpdate = true;
+					finallyPoint.material.uniforms.size.value = Math.max(3.6,-moveS2) + (options.point.size * Math.max(0,-moveS2));
 
-					finallyPoint.material.uniforms.size.value = Math.max(3.6,-move) + (options.point.size * Math.max(0,-move));
+					locationPoint.position.y += (Math.min(0,moveS2) - locationPoint.position.y) * .1;
+					locationPoint.position.z += (Math.max(0,-moveS2 * 1.5) - locationPoint.position.z) * .1;
+
+
+					modelPoint.geometry.attributes.position.needsUpdate = true;
+
 				}
 
 
@@ -871,12 +1026,56 @@
 					renderer.render(scene, camera);
 				}
 			}
-			
-			init();
+
+
+			var clicked = false;
+			var currentPos = {x:0,y:0};
+			var prevPos = {x:0,y:0};
+			var mouse = {x:0,y:0};
+			var deltaMove = {x:0,y:0};
+			var newdeltaMove = {x:-0.1,y:0.1};
+			window.addEventListener('mousemove',function(event){
+				// Update the mouse variable
+				// <-   width  ->
+				// -1     0     1
+				if(clicked){
+					deltaMove = {
+						x:event.clientX - prevPos.x,
+						y:event.clientY - prevPos.y
+					}
+
+					newdeltaMove.x += ( Math.min(2,Math.max(-2,deltaMove.x)) - newdeltaMove.x) * .1;
+					newdeltaMove.y += ( Math.min(2,Math.max(-2,deltaMove.y)) - newdeltaMove.y) * .1;
+					
+					prevPos = {
+						x:event.clientX,
+						y:event.clientY
+					}
+
+					// _mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+					// _mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+				}
+			}, false);
+
+			window.addEventListener('mousedown',function(event){
+				clicked = true;
+				prevPos = {
+					x:event.clientX,
+					y:event.clientY
+				}
+				
+			})
+			window.addEventListener('mouseup',function(event){
+				clicked = false;
+			});
+
+			var toRadians = function(angle){
+				return angle * (Math.PI / 180);
+			}
 
 
 
-			function calcPosFromLatLonRad(lat,lon,radius){
+			var calcPosFromLatLonRad = function(lat,lon,radius){
 				var phi   = (90-lat)*(Math.PI/180)
 				var theta = (lon+180)*(Math.PI/180)
 
@@ -886,6 +1085,11 @@
 
 				return [x,y,z]
 			}
+			
+			init();
+
+
+
 
 		</script>
 	</body>
