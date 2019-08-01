@@ -177,7 +177,7 @@
 
 			var ballMaxPoints = 20496;
 			var bgPoints = 1000;
-			var modelMaxPoints = 31000;
+			var modelMaxPoints = 100600;
 			var started = false;
 			var options = {};
 			var scene, camera, renderer;
@@ -187,17 +187,22 @@
 			var ballPos = {targetPos:[],tempTargetPos:[]};
 			var modelPos = {targetPos:[],tempTargetPos:[]};
 			var objFiles = [
-				['./model1.obj', -9],
-				['./model2.obj', -12],
-				['./model3.obj', -12.5]
+				['./models/Airplane_v02.obj',	-4,		1],
+				['./models/Brain_v02.obj', 		-12,	2],
+				['./models/bulb_v04.obj', 		-12.5,	2],
+				['./models/CTFE_logo_v04.obj', -13.5,	2],
+				['./models/Hand_v01.obj', 		-7,		1.2],
+				['./models/heart_v02.obj', 		-7,		1.6],
+				['./models/NWD_logo_v04.obj', 	-8,		1.6],
+				['./models/Trolley_v02.obj', 	-9,		1.6]
 			];
 			var latlog = [
-				//lat, log, name, fontSize, circleSize
-				[32.694775,129.425179,'Japan',-50,200],
-				[34.4541416,86.0706458,'China',-50,200],
-				[36.2497092,-113.7004455,'U.S.',-300,400],
-				[54.2315724,-13.4279228,'U.K.',50,150],
-				[-24.9910822,115.2154973,'Australia',100, 100]
+				//lat, 			log,			name, 		fontSize, circleSize
+				[32.694775,		129.425179,		'Japan',	-50,	  200],
+				[34.4541416,	86.0706458,		'China',	-50,	  200],
+				[36.2497092,	-113.7004455,	'U.S.',		-300,	  400],
+				[54.2315724,	-13.4279228,	'U.K.',		50,		  150],
+				[-24.9910822,	115.2154973,	'Australia',100,	  100]
 			];
 			var section = 0;
 			var oldSection = 0;
@@ -227,7 +232,7 @@
 					wave: false,
 					lightHelper: false,
 					point:{
-						size:0.5,
+						size:3,
 						depth:.8
 					},
 					camera:{
@@ -236,20 +241,13 @@
 					fogNear:scene.fog.near,
 					fogFar:scene.fog.far,
 					ToModel1: function(){
-						// morphTo(ballsPoint);
 						TweenMax.to('html,body',1,{scrollTop:0, ease:Power4.easeOut});
-						// TweenMax.to(locationPoint.material.uniforms.size, .6, {value: 0, overwrite:'all', ease:Power4.easeOut});
 					},
 					ToModel2: function(){
-						// morphTo(earthPoint);
 						TweenMax.to('html,body',1,{scrollTop:1 * window.innerHeight, ease:Power4.easeOut});
-						// TweenMax.to(locationPoint.material.uniforms.size, 1.3, {value: 1, ease:Elastic.easeOut.config(1, 0.3)});
 					},
 					ToModel3: function(){
-						// morphTo(cubePoints);
-						// morphTo(ballsPoint);
 						TweenMax.to('html,body',1,{scrollTop:2 * window.innerHeight, ease:Power4.easeOut});
-						// TweenMax.to(locationPoint.material.uniforms.size, .6, {value: 0, overwrite:'all', ease:Power4.easeOut});
 					}
 				}
 
@@ -454,7 +452,6 @@
 						lightsGroup.add(spotLight);
 
 						var spotLightHelper = new THREE.SpotLightHelper( spotLight );
-						// spotLightHelper.layers.set(i+1);
 						lightsHelperGroup.add( spotLightHelper );
 
 						var ambientLight = new THREE.AmbientLight( 0xffffff );
@@ -477,7 +474,6 @@
 
 			var initSection2 = function(){
 				// earth
-				// var geometry = new THREE.IcosahedronGeometry(15,4);
 				var geometry = new THREE.SphereGeometry(15,62,62);
 				earthPoint = new THREE.Points( geometry , pointsMaterial );
 
@@ -594,7 +590,6 @@
 					// fog:true
 				});
 				locationPoint = new THREE.Points( locationPointGeometry, locationPointsMaterial );
-				// locationPoint.scale.set(2,2,2);
 				scene.add(locationPoint);
 			}
 
@@ -624,9 +619,9 @@
 				var positions = new Float32Array( modelMaxPoints * 3 );
 				for(var i=0; i<modelMaxPoints; i++){
 					var pos = new THREE.Vector3(
-						THREE.Math.randFloat(-200,200),
-						THREE.Math.randFloat(-200,200),
-						-200
+						THREE.Math.randFloat(-30,30),
+						THREE.Math.randFloat(-20,20),
+						THREE.Math.randFloat(-30,30)
 					);
 					pos.toArray(positions,i*3);
 				}
@@ -636,11 +631,7 @@
 
 
 				var positions = new Float32Array( modelMaxPoints * 3 );
-				// var colors = new Float32Array( modelMaxPoints * 3 );
 				for(var i=0; i<modelMaxPoints; i++){
-					// color = new THREE.Color(0xffffff);
-					// color.toArray(colors, i*3);
-
 					var pos = new THREE.Vector3(
 						cubePoints.geometry.attributes.position.array[i*3+0],
 						cubePoints.geometry.attributes.position.array[i*3+1],
@@ -649,9 +640,14 @@
 					pos.toArray(positions, i*3);
 				}
 				modelPointsGeometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-				// modelPointsGeometry.addAttribute( 'color', new THREE.BufferAttribute( colors, 3 ));
 
 				var uniforms = {
+					opacity:{
+						value: 0
+					},
+					size:{
+						value:3
+					},
 					texture:{
 						type: "t",
 						value: new THREE.CanvasTexture(createTexture('white'))//new THREE.TextureLoader().load('https://klevron.github.io/codepen/misc/star.png')
@@ -661,6 +657,7 @@
 				var modelPointsMaterial = new THREE.ShaderMaterial({ 
 					uniforms: uniforms,
 					vertexShader: [
+						'uniform float size;',
 						'void main(){',
 							'vec3 newPosition = position;',
 							'vec4 position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);',
@@ -670,16 +667,17 @@
 							'float y = pow(newPosition.y, 2.0);',
 							'float z = pow(newPosition.z, 2.0);',
 							'float dist = x + y + z;',
-							'gl_PointSize = 6. - dist / 10000.;',
+							'gl_PointSize = size - dist / 10000.;',
 						'}'
 					].join('\n'),
 					fragmentShader: [
 						'uniform sampler2D texture;',
+						'uniform float opacity;',
 						'void main(){',
 							'vec4 textureColor = texture2D(texture, gl_PointCoord);',
 
 							'if ( textureColor.w < .8 ) discard;',
-							'gl_FragColor = vec4(1., 1., 1., .2) * textureColor;',
+							'gl_FragColor = vec4(1., 1., 1., opacity) * textureColor;',
 						'}'
 					].join('\n'),
 					blending: THREE.AdditiveBlending,
@@ -689,9 +687,6 @@
 				modelPoint = new THREE.Points( modelPointsGeometry, modelPointsMaterial);
 				modelPoint.scale.set(1.2, 1.2, 1.2);
 				scene.add(modelPoint);
-
-
-
 
 
 				// init div
@@ -709,14 +704,17 @@
 						var idx = idx;
 						ballDiv[idx].addEventListener('mouseenter',function(){
 							if(model[idx])
-							modelPos = morphTo(modelPoint, model[idx], modelMaxPoints);
+								modelPos = morphTo(modelPoint, model[idx], modelMaxPoints);
 							
-							TweenMax.to(ballsPoint.material, 1, {opacity: 0.1, overwrite:'all', ease:Power4.easeOut});
+							TweenMax.to(ballDiv, 1, {autoAlpha: 0.3, overwrite:'all', ease:Power4.easeOut});
+							TweenMax.to(this, 1, {autoAlpha: 1, overwrite:'all', ease:Power4.easeOut});
+							TweenMax.to(modelPoint.material.uniforms.opacity, 2, {value: .2, ease:Power4.easeOut});
 						},false);
 
 						ballDiv[idx].addEventListener('mouseleave',function(){
-							TweenMax.to(ballsPoint.material, 1, {opacity: 1, ease:Power4.easeOut, onComplete(){
+							TweenMax.to(ballDiv, .6, {autoAlpha: 1, ease:Power4.easeOut, onComplete(){
 								modelPos = morphTo(modelPoint, cubePoints, modelMaxPoints);
+								TweenMax.to(modelPoint.material.uniforms.opacity, 2, {value: 0, ease:Power4.easeOut});
 							}});
 						},false);
 					})(i);
@@ -733,6 +731,17 @@
 
 
             var initLoadOBJ = function(){
+				var loadingProgress = 0;
+				var div = document.createElement('div');
+				div.style.position = 'fixed';
+				div.style.top = '50%';
+				div.style.left = '50%';
+				div.style.transform = 'translate3d(-50%,50%,0);';
+				div.style.webkitTransform = 'translate3d(-50%,50%,0);';
+				div.innerHTML = '0%';
+				document.body.appendChild(div);
+
+
 				var manager = new THREE.LoadingManager();
 
 				// all objects are loaded
@@ -744,14 +753,16 @@
 					var tl = new TimelineMax();
 					for(var i=0; i<lightsGroup.children.length; i++){
 						tl.to(lightsGroup.children[i].position, 3, {z:lightParms[i].position.z, ease:Power4.easeOut},'s');
-						// tl.to(lightsGroup.children[i],.6,{intensity:lightParms[i].intensity, ease:Power2.easeInOut},'-=.55');
 					}
+
+					div.remove();
 
 					loaded = true;
 				};
 
+
 				// load .obj file
-				var loadObj = function(idx, file, reposition){
+				var loadObj = function(idx, file, reposition, scale){
 					var loader = new THREE.OBJLoader2(manager);
 					loader.load(file, function(obj){
 						var geometry = obj.detail.loaderRootNode;
@@ -761,13 +772,15 @@
 								var geo = new THREE.Geometry().fromBufferGeometry( child.geometry );
 								geo.mergeVertices();
 								model[idx] = new THREE.Points( geo , pointsMaterial );
-								model[idx].scale.set(2,2,2);
+								model[idx].scale.set(scale,scale,scale);
 								model[idx].updateMatrix();
 								model[idx].geometry.applyMatrix( model[idx].matrix );
 								for(var i=0; model[idx].geometry.vertices[i]; i++){
 									model[idx].geometry.vertices[i].y += reposition;
 								}
 								console.log('model'+(idx+1)+': ',model[idx].geometry.vertices.length, model[idx]);
+								loadingProgress += 100/objFiles.length;
+								div.innerHTML = Math.min(100,loadingProgress)+'%';
 							}
 						});
 					}, null, null, null, false );
@@ -775,7 +788,7 @@
 
 				// loop all files
 				for(var i=0; objFiles[i]; i++){
-					loadObj(i, objFiles[i][0], objFiles[i][1]);
+					loadObj(i, objFiles[i][0], objFiles[i][1], objFiles[i][2]);
 				}
             }
 
@@ -886,10 +899,10 @@
 				oldSection = section;
 			}
 
+
 			var start = Date.now();
             var update = function () {
 				var timer = (Date.now() - start) / 10000;
-
 
 				// if all loaded
 				if(loaded){
@@ -942,13 +955,14 @@
 					var mpos = modelPoint.geometry.attributes.position.array;
 					for(var i=0; i<modelMaxPoints; i++){
 						if(modelPos.targetPos.length){
-							modelPos.targetPos[i].x += (modelPos.tempTargetPos[i].x - modelPos.targetPos[i].x) * .04;
-							modelPos.targetPos[i].y += (modelPos.tempTargetPos[i].y - modelPos.targetPos[i].y) * .04;
-							modelPos.targetPos[i].z += (modelPos.tempTargetPos[i].z - modelPos.targetPos[i].z) * .04;
+
+							// modelPos.targetPos[i].x += (modelPos.tempTargetPos[i].x - modelPos.targetPos[i].x) * .04;
+							// modelPos.targetPos[i].y += (modelPos.tempTargetPos[i].y - modelPos.targetPos[i].y) * .04;
+							// modelPos.targetPos[i].z += (modelPos.tempTargetPos[i].z - modelPos.targetPos[i].z) * .04;
 							
-							mpos[i*3+0] += (modelPos.targetPos[i].x - mpos[i*3+0]) * .04;
-							mpos[i*3+1] += (modelPos.targetPos[i].y - mpos[i*3+1]) * .04;
-							mpos[i*3+2] += (modelPos.targetPos[i].z - mpos[i*3+2]) * .04;
+							mpos[i*3+0] += (modelPos.tempTargetPos[i].x - mpos[i*3+0]) * .04;
+							mpos[i*3+1] += (modelPos.tempTargetPos[i].y - mpos[i*3+1]) * .04;
+							mpos[i*3+2] += (modelPos.tempTargetPos[i].z - mpos[i*3+2]) * .04;
 						}
 					}
 
@@ -970,14 +984,15 @@
 					finallyPoint.position.y += (Math.min(0,moveS2) - finallyPoint.position.y) * .1;
 					finallyPoint.position.z += (Math.max(0,-moveS2 * 1.5) - finallyPoint.position.z) * .1;
 					finallyPoint.geometry.attributes.position.needsUpdate = true;
-					finallyPoint.material.uniforms.size.value = Math.max(5,-moveS2) + (options.point.size * Math.max(0,-moveS2));
+					finallyPoint.material.uniforms.size.value = Math.max(5,-moveS2) + (.5 * Math.max(0,-moveS2));
 
 					locationPoint.position.y += (Math.min(0,moveS2) - locationPoint.position.y) * .1;
 					locationPoint.position.z += (Math.max(0,-moveS2 * 1.5) - locationPoint.position.z) * .1;
 
 
+					modelPoint.rotation.y = -timer;
 					modelPoint.geometry.attributes.position.needsUpdate = true;
-
+					modelPoint.material.uniforms.size.value = options.point.size;
 				}
 
 
@@ -991,7 +1006,6 @@
 						bgpos[i*3+2] = 40 * Math.cos(tempBgPos[i*3+2] + timer*.2);
 					}
 					bgPointsGeometry.attributes.position.needsUpdate = true;
-					// bgPointsGeometry.attributes.isBg.needsUpdate = true;
 				}
 
 				// lights helper
@@ -1080,10 +1094,6 @@
 			}
 			
 			init();
-
-
-
-
 		</script>
 	</body>
 </html>
