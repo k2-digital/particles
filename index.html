@@ -187,13 +187,13 @@
 			var modelPos = {targetPos:[],tempTargetPos:[]};
 			var objFiles = [
 				['./models/Airplane_v02.obj',	-4,		1],
-				['./models/Brain_v02.obj', 		-12,	2],
-				['./models/bulb_v04.obj', 		-12.5,	2],
-				['./models/CTFE_logo_v04.obj', -13.5,	2],
-				['./models/Hand_v01.obj', 		-7,		1.2],
-				['./models/heart_v02.obj', 		-7,		1.6],
-				['./models/NWD_logo_v04.obj', 	-8,		1.6],
-				['./models/Trolley_v02.obj', 	-9,		1.6]
+				// ['./models/Brain_v02.obj', 		-12,	2],
+				// ['./models/bulb_v04.obj', 		-12.5,	2],
+				// ['./models/CTFE_logo_v04.obj', -13.5,	2],
+				// ['./models/Hand_v01.obj', 		-7,		1.2],
+				// ['./models/heart_v02.obj', 		-7,		1.6],
+				// ['./models/NWD_logo_v04.obj', 	-8,		1.6],
+				// ['./models/Trolley_v02.obj', 	-9,		1.6]
 			];
 			var latlog = [
 				//lat, 			log,			name, 		fontSize, circleSize
@@ -446,6 +446,8 @@
 						var spotLight = new THREE.SpotLight( 0x669E23,lightParms[i].intensity, lightParms[i].distance, lightParms[i].angle, 1 );
 						spotLight.position.copy(lightParms[i].position);
 						spotLight.position.z = -50;
+						spotLight.originalPosition = new THREE.Vector3();
+						spotLight.originalPosition.copy(spotLight.position);
 						spotLight.target = ballsGroup.children[i];
 						spotLight.layers.set(i+1);
 						lightsGroup.add(spotLight);
@@ -906,7 +908,15 @@
 				// if all loaded
 				if(loaded){
 
-					// update section
+					// Conver 2d position to 3d position
+					var vector = new THREE.Vector3(_mouse.x, _mouse.y, 0.5);
+					vector.unproject( camera );
+					var dir = vector.sub( camera.position ).normalize();
+					var distance = - camera.position.z / dir.z;
+					mouse = camera.position.clone().add( dir.multiplyScalar( distance ) );
+
+
+					// update section with scroll
 					if(window.pageYOffset >= (section * window.innerHeight)){
 						section++;
 						updateSection(section);
@@ -917,7 +927,7 @@
 					}
 
 
-					// drag function
+					// drag the earth and location
 					if(section <= 2){
 						var deltaRotationQuaternion = new THREE.Quaternion().setFromEuler(
 							new THREE.Euler(
@@ -934,6 +944,13 @@
 						// finallyPoint.matrix.identity();
 						// finallyPoint.rotation.set(0,0,0);
 						// finallyPoint.updateMatrix(); 
+					}
+
+
+					// move light by mouse
+					for(var i=0; i<lightsGroup.children.length; i++){
+						lightsGroup.children[i].position.x = lightsGroup.children[i].originalPosition.x + mouse.x * .2;
+						lightsGroup.children[i].position.y = lightsGroup.children[i].originalPosition.y + mouse.y * .2;
 					}
 
 
@@ -1040,27 +1057,25 @@
 			var mouse = {x:0,y:0};
 			var deltaMove = {x:0,y:0};
 			var newdeltaMove = {x:-0.1,y:0.1};
+			var _mouse = {}
 			window.addEventListener('mousemove',function(event){
 				// Update the mouse variable
 				// <-   width  ->
 				// -1     0     1
+				deltaMove = {
+					x:event.clientX - prevPos.x,
+					y:event.clientY - prevPos.y
+				}
 				if(clicked){
-					deltaMove = {
-						x:event.clientX - prevPos.x,
-						y:event.clientY - prevPos.y
-					}
-
 					newdeltaMove.x += ( Math.min(2,Math.max(-2,deltaMove.x)) - newdeltaMove.x) * .1;
 					newdeltaMove.y += ( Math.min(2,Math.max(-2,deltaMove.y)) - newdeltaMove.y) * .1;
-					
-					prevPos = {
-						x:event.clientX,
-						y:event.clientY
-					}
-
-					// _mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-					// _mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 				}
+				prevPos = {
+					x:event.clientX,
+					y:event.clientY
+				}
+				_mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				_mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
 			}, false);
 
 			window.addEventListener('mousedown',function(event){
@@ -1074,6 +1089,10 @@
 			window.addEventListener('mouseup',function(event){
 				clicked = false;
 			});
+			// document.addEventListener('mouseleave',function(event){
+			// 	deltaMove.x = 0;
+			// 	deltaMove.y = 0;
+			// });
 
 			var toRadians = function(angle){
 				return angle * (Math.PI / 180);
