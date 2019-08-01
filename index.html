@@ -947,10 +947,16 @@
 					}
 
 
-					// move light by mouse
-					for(var i=0; i<lightsGroup.children.length; i++){
-						lightsGroup.children[i].position.x = lightsGroup.children[i].originalPosition.x + mouse.x * .2;
-						lightsGroup.children[i].position.y = lightsGroup.children[i].originalPosition.y + mouse.y * .2;
+					// move light in section 1
+					if(mouseenter){
+						for(var i=0; i<lightsGroup.children.length; i++){
+							var lightX = lightsGroup.children[i].originalPosition.x + mouse.x * .2;
+							var lightY = lightsGroup.children[i].originalPosition.y + mouse.y * .2;
+
+							// easing
+							lightsGroup.children[i].position.x += (lightX - lightsGroup.children[i].position.x) * .1;
+							lightsGroup.children[i].position.y += (lightY - lightsGroup.children[i].position.y) * .1;
+						}
 					}
 
 
@@ -1051,14 +1057,16 @@
 			}
 
 
+			var mouseenter = false;
 			var clicked = false;
 			var currentPos = {x:0,y:0};
 			var prevPos = {x:0,y:0};
 			var mouse = {x:0,y:0};
 			var deltaMove = {x:0,y:0};
 			var newdeltaMove = {x:-0.1,y:0.1};
-			var _mouse = {}
+			var _mouse = {};
 			window.addEventListener('mousemove',function(event){
+				mouseenter = true;
 				// Update the mouse variable
 				// <-   width  ->
 				// -1     0     1
@@ -1089,10 +1097,15 @@
 			window.addEventListener('mouseup',function(event){
 				clicked = false;
 			});
-			// document.addEventListener('mouseleave',function(event){
-			// 	deltaMove.x = 0;
-			// 	deltaMove.y = 0;
-			// });
+			document.addEventListener('mouseenter',function(event){
+				mouseenter = true;
+			});
+			document.addEventListener('mouseleave',function(event){
+				mouseenter = false;
+				for(var i=0; i<lightsGroup.children.length; i++){
+					TweenMax.to(lightsGroup.children[i].position,1,{x: lightsGroup.children[i].originalPosition.x, y:lightsGroup.children[i].originalPosition.y, ease:Power3.easeOut});
+				}
+			});
 
 			var toRadians = function(angle){
 				return angle * (Math.PI / 180);
