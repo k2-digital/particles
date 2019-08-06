@@ -94,20 +94,20 @@
 	
 		<script id="fragmentShader" type="x-shader/x-fragment">
 			uniform sampler2D texture;
-			uniform vec3 fogColor;
-			uniform float fogNear;
-			uniform float fogFar;
+			//uniform vec3 fogColor;
+			//uniform float fogNear;
+			//uniform float fogFar;
 			void main()	{
 				vec4 textureColor = texture2D(texture, gl_PointCoord);
 				if ( textureColor.w < .8 ) discard;
 				gl_FragColor = vec4(255./255., 209./255., 150./255., .05) * textureColor;
 				
-				#ifdef USE_LOGDEPTHBUF_EXT
-					float depth = gl_FragDepthEXT / gl_FragCoord.w;
-				#else
-					float depth = gl_FragCoord.z / gl_FragCoord.w;
-				#endif
-				float fogFactor = smoothstep( fogNear, fogFar, depth );
+				//#ifdef USE_LOGDEPTHBUF_EXT
+				//	float depth = gl_FragDepthEXT / gl_FragCoord.w;
+				//#else
+				//	float depth = gl_FragCoord.z / gl_FragCoord.w;
+				//#endif
+				//float fogFactor = smoothstep( fogNear, fogFar, depth );
 		  
 				//gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
 				//gl_FragColor.rgb = gl_FragColor.rgb;
@@ -237,8 +237,8 @@
 					camera:{
 						z:camera.position.z
 					},
-					fogNear:scene.fog.near,
-					fogFar:scene.fog.far,
+					// fogNear:scene.fog.near,
+					// fogFar:scene.fog.far,
 					ToModel1: function(){
 						TweenMax.to('html,body',1,{scrollTop:0, ease:Power4.easeOut});
 					},
@@ -274,18 +274,18 @@
 			}
 
 			var initGUI = function(){
-				var gui = new dat.GUI({width: 300});
+				var gui = new dat.GUI({width: 390});
 					gui.add(options.point, 'size').min(0).max(5).name('Size of particle');
 					gui.add(options.camera, 'z').min(0).max(100).name('Move Camera');
-					var _f = gui.addFolder('Fog');
-					_f.add(options, 'fogNear').min(.1).max(100).name('Near');
-					_f.add(options, 'fogFar').min(20).max(100).name('Far');
-					_f.open();
+					// var _f = gui.addFolder('Fog');
+					// _f.add(options, 'fogNear').min(.1).max(100).name('Near');
+					// _f.add(options, 'fogFar').min(20).max(100).name('Far');
+					// _f.open();
 					gui.add(options, 'ToModel1').name('Go Section 1');
 					gui.add(options, 'ToModel2').name('Go Section 2');
 					gui.add(options, 'ToModel3').name('Go Section 3');
 					gui.add(options, 'wave').name('Let\'s Wave!');
-					gui.add(options, 'lightHelper').name('Show light helper');
+					gui.add(options, 'lightHelper').name('Show light helper(section 1)');
 			}
 
 			var createTexture = function(color, text, fontSize, circleSize){
@@ -322,9 +322,9 @@
 						type: "t",
 						value: new THREE.CanvasTexture(createTexture('white'))//new THREE.TextureLoader().load('https://klevron.github.io/codepen/misc/star.png')
 					},
-					fogColor:    { type: "c", value: scene.fog.color },
-					fogNear:     { type: "f", value: scene.fog.near },
-					fogFar:      { type: "f", value: scene.fog.far }
+					// fogColor:    { type: "c", value: scene.fog.color },
+					// fogNear:     { type: "f", value: scene.fog.near },
+					// fogFar:      { type: "f", value: scene.fog.far }
 				};
 				
 
@@ -336,7 +336,7 @@
 					// depthTest: true,
 					depthWrite: false,
 					// transparent: true,
-					fog:true
+					// fog:true
 				});
 			}
 
@@ -1039,8 +1039,8 @@
 			};
 			
 			var render = function(){
-				scene.fog.near = options.fogNear;
-				scene.fog.far = options.fogFar;
+				// scene.fog.near = options.fogNear;
+				// scene.fog.far = options.fogFar;
 				camera.position.z = options.camera.z;
 
 				renderer.autoClear = true;
